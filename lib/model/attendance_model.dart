@@ -23,23 +23,43 @@ class AttendanceLog {
     this.status = AttendanceStatus.absent,
   });
 
+  // ✅ FORCE SAUDI TIME (UTC+3)
   String get formattedCheckIn {
     if (checkIn == null) return "--:--";
     try {
-      final utcTime = DateTime.parse("1970-01-01 ${checkIn!}").toUtc();
-      final riyadhTime = utcTime.add(const Duration(hours: 3));
-      return DateFormat('hh:mm a').format(riyadhTime);
+      final parts = checkIn!.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        
+        final nowUtc = DateTime.now().toUtc();
+        final saudiNow = nowUtc.add(const Duration(hours: 3));
+        final time = DateTime(saudiNow.year, saudiNow.month, saudiNow.day, hour, minute);
+        
+        return DateFormat('hh:mm a').format(time);
+      }
+      return checkIn!;
     } catch (_) {
       return checkIn!;
     }
   }
 
+  // ✅ FORCE SAUDI TIME (UTC+3)
   String get formattedCheckOut {
     if (checkOut == null) return "--:--";
     try {
-      final utcTime = DateTime.parse("1970-01-01 ${checkOut!}").toUtc();
-      final riyadhTime = utcTime.add(const Duration(hours: 3));
-      return DateFormat('hh:mm a').format(riyadhTime);
+      final parts = checkOut!.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        
+        final nowUtc = DateTime.now().toUtc();
+        final saudiNow = nowUtc.add(const Duration(hours: 3));
+        final time = DateTime(saudiNow.year, saudiNow.month, saudiNow.day, hour, minute);
+        
+        return DateFormat('hh:mm a').format(time);
+      }
+      return checkOut!;
     } catch (_) {
       return checkOut!;
     }

@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:management_app/providers/profile_provider.dart';
 import 'package:management_app/services/auth_service.dart';
-import 'package:management_app/services/leave_balance_service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:management_app/services/leave_approved_service.dart';
@@ -122,12 +121,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       'route': '/employeeAdvance',
     },
     {
-      'title': 'Request Approval',
-      'subtitle': 'Approve requests',
-      'icon': Icons.approval_rounded,
-      'bgPattern': Icons.how_to_reg_rounded,
-      'type': 'Leave_Approval',
-      'route': '/leaveApprovalScreen',
+      'title': 'Travel Request',
+      'subtitle': 'Plan travel',
+      'icon': Icons.flight_rounded,
+      'bgPattern': Icons.explore_rounded,
+      'type': 'Travel_request',
+      'route': '/travelRequest',
     },
     {
       'title': 'Attendance',
@@ -138,12 +137,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       'route': '/attendanceRequest',
     },
     {
-      'title': 'Travel Request',
-      'subtitle': 'Plan travel',
-      'icon': Icons.flight_rounded,
-      'bgPattern': Icons.explore_rounded,
-      'type': 'Travel_request',
-      'route': '/travelRequest',
+      'title': 'Request Approval',
+      'subtitle': 'Approve requests',
+      'icon': Icons.approval_rounded,
+      'bgPattern': Icons.how_to_reg_rounded,
+      'type': 'Leave_Approval',
+      'route': '/leaveApprovalScreen',
     },
     {
       'title': 'Leave Balance',
