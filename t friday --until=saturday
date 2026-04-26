@@ -1,0 +1,56 @@
+[33mcac3e45[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mjan10-work[m[33m, [m[1;31morigin/jan10-work[m[33m)[m updated ui
+[33m2660d32[m Final fase 1
+[33m9de893d[m added employee advance syccessfylly
+[33mc29e83f[m complete updated code 2026/02/05
+[33m021a583[m completed both  request
+[33mcd704e4[m Start from Jan 10 commit and continue work
+[33med24811[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m final updated pushed
+[33m5ff028b[m added slide button in homescreen
+[33m1e52694[m updated dashboard screen
+[33mcfb6abc[m updated darkmode
+[33m6b5f722[m updated leave
+[33mbd12116[m updated leave request
+[33m225a4a7[m leaveapproved screen added
+[33md98bd2e[m updated uis
+[33m56324dd[m updated homescreen
+[33m8666d3f[m updated validation of user
+[33m74a73e9[m added feedback  screen
+[33maa18ccc[m updated erp request
+[33m43e79db[m updated attendaance request code
+[33m6862642[m final updated today
+[33mb6f6f83[m updated code
+[33ma8f1465[m analog clock added
+[33m545bf76[m added clock on home ui/ux
+[33m4fadf60[m updated attendance provider logic and screen ui
+[33m421c522[m updated reset paswword screen
+[33m17849d5[m updated code of home
+[33m51ccab1[m bottomnav fixed
+[33m148869b[m updated systemuimodeand dashboard
+[33mf25a7d5[m updated dashbord
+[33m1a9492b[m solved images compress error
+[33m0df3762[m updated banner
+[33m59a5c80[m fixed date
+[33mb3ffcbc[m solved attendance issue
+[33m42eec35[m fetched data successfully form erpnext
+[33m1f64463[m updated attendance screen
+[33ma5b7ea0[m history screen updated
+[33m0da4ece[m updated history screen
+[33m60c7a07[m updated attendance provider
+[33mb610def[m updated attendance screen
+[33m7d15261[m updated code of attendence screen
+[33m263d48d[m updated attedance history code
+[33m2e73b1f[m attendnce history screen updated
+[33m9449636[m added checkin/punchin
+[33m2826eb1[m updated Dailog of login and logout
+[33m34f6bb2[m Leaverequest Wrok successfully here
+[33m8932bf4[m added animation on profilescreen
+[33me15ae59[m added profilescreen
+[33meb54c89[m fixed bug of profile
+[33mad92b27[m Leave request ApI called
+[33m13851e6[m Added leave request page
+[33m2a20893[m Employee checkIn and checkOut logic added
+[33m7c8e777[m added forgot password screen and fetched profile data from backend and displayed on screen
+[33mba5030f[m All screen are commited tody
+[33m4593ed5[m Merged remote history + added project
+[33mccec59c[m Initial commit - Employee Management App
+[33m6ec2153[m Initial commit
