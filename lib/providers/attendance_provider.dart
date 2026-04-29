@@ -37,7 +37,6 @@ class AttendanceProvider extends ChangeNotifier {
 
       _processAttendanceData(rawData);
       
-      
       await _loadTodayAttendance(employeeId);
 
     } catch (e) {
@@ -51,29 +50,25 @@ class AttendanceProvider extends ChangeNotifier {
   void _processAttendanceData(List<dynamic> rawData) {
     final Map<DateTime, List<Map<String, dynamic>>> dateGroupedLogs = {};
 
-    
     for (final item in rawData) {
       try {
         final timeStr = item["time"]?.toString();
         final logType = item["log_type"]?.toString();
         
         if (timeStr == null || logType == null) continue;
-
-        final utcTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr, true);
-        final saudiTime = utcTime.add(const Duration(hours: 3));
-        final dateKey = DateTime(saudiTime.year, saudiTime.month, saudiTime.day);
+        final localTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr, true);
+        final dateKey = DateTime(localTime.year, localTime.month, localTime.day);
         
         dateGroupedLogs.putIfAbsent(dateKey, () => []);
         dateGroupedLogs[dateKey]!.add({
-          'time': saudiTime,
+          'time': localTime,
           'type': logType,
         });
       } catch (_) {
-        
+        // Skip invalid entries
       }
     }
 
-    
     dateGroupedLogs.forEach((date, logs) {
       logs.sort((a, b) => a['time'].compareTo(b['time']));
       
@@ -96,8 +91,8 @@ class AttendanceProvider extends ChangeNotifier {
 
       _attendanceMap[date] = AttendanceLog(
         date: date,
-        checkIn: firstIn != null ? DateFormat("HH:mm").format(firstIn) : null,
-        checkOut: lastOut != null ? DateFormat("HH:mm").format(lastOut) : null,
+        checkIn: firstIn != null ? DateFormat("hh:mm a").format(firstIn) : null,
+        checkOut: lastOut != null ? DateFormat("hh:mm a").format(lastOut) : null,
         totalHours: totalHours,
         status: status,
       );
@@ -120,7 +115,6 @@ class AttendanceProvider extends ChangeNotifier {
         _processAttendanceData(todayData);
       }
     } catch (_) {
-      
     }
   }
 

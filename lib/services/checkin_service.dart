@@ -35,8 +35,9 @@ class CheckinService {
         };
       }
 
-      final riyadhTime = DateTime.now().toUtc().add(const Duration(hours: 3));
-      final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(riyadhTime);
+      // Device local time  — hardcoded +3 i changed
+      final localTime = DateTime.now();
+      final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(localTime);
 
       Map<String, dynamic> requestBody = {
         "employee": employeeId,
@@ -62,7 +63,6 @@ class CheckinService {
         body: jsonEncode(requestBody),
       );
 
-      // ✅ PRINT BACKEND RESPONSE
       print("========== PUNCH API RESPONSE ==========");
       print("Status Code: ${apiResponse.statusCode}");
       print("Response Body: ${apiResponse.body}");
@@ -85,9 +85,9 @@ class CheckinService {
           } catch (_) {}
         }
         if (message.isEmpty) {
-          message = responseData['exception'] ?? 
-                   responseData['message'] ??
-                   (success ? 'Punch successful' : 'Punch failed');
+          message = responseData['exception'] ??
+              responseData['message'] ??
+              (success ? 'Punch successful' : 'Punch failed');
         }
       } catch (e) {
         message = success ? 'Punch successful' : 'Punch failed';
@@ -105,7 +105,6 @@ class CheckinService {
         'statusCode': apiResponse.statusCode,
         'offlineMode': false,
       };
-
     } catch (e) {
       print("========== ERROR ==========");
       print("Error: ${e.toString()}");

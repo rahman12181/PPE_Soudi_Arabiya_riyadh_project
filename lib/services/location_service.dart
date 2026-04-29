@@ -114,7 +114,7 @@ class LocationService {
     } on TimeoutException catch (_) {
       return {
         'success': false,
-        'error': 'Location request timed out. Please try again.',
+        'error': 'Location request timed out.',
         'type': 'timeout',
         'position': null,
       };

@@ -171,7 +171,6 @@ class _HomemainScreenState extends State<HomemainScreen>
           context,
           listen: false,
         );
-        // ✅ FIX: Set employee ID before loading punches
         punchProvider.setEmployeeId(employeeId);
         await punchProvider.loadDailyPunches();
         await punchProvider.fetchAndSyncTodayFromERP(employeeId: employeeId);
@@ -235,8 +234,7 @@ class _HomemainScreenState extends State<HomemainScreen>
   }
 
   String _getTimeBasedGreeting() {
-    final riyadhTime = DateTime.now().toUtc().add(const Duration(hours: 3));
-    final hour = riyadhTime.hour;
+    final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) return 'Good Morning,';
     if (hour >= 12 && hour < 17) return 'Good Afternoon,';
     if (hour >= 17 && hour < 21) return 'Good Evening,';
@@ -245,11 +243,10 @@ class _HomemainScreenState extends State<HomemainScreen>
 
   void _updateTime() {
     if (!mounted) return;
-    final utcNow = DateTime.now().toUtc();
-    final riyadhTime = utcNow.add(const Duration(hours: 3));
+    final localTime = DateTime.now();
     setState(() {
-      _currentTime = DateFormat('hh:mm a').format(riyadhTime);
-      _currentDate = DateFormat('MMM dd, yyyy • EEEE').format(riyadhTime);
+      _currentTime = DateFormat('hh:mm a').format(localTime);
+      _currentDate = DateFormat('MMM dd, yyyy • EEEE').format(localTime);
     });
   }
 
@@ -792,8 +789,8 @@ class _HomemainScreenState extends State<HomemainScreen>
         _hasError = false;
       });
       HapticFeedback.mediumImpact();
-      final utcNow = DateTime.now().toUtc();
-      final riyadhNow = utcNow.add(const Duration(hours: 3));
+      final localNow = DateTime.now();
+
       Position? freshPosition;
       bool locationSuccess = false;
       try {
@@ -874,7 +871,9 @@ class _HomemainScreenState extends State<HomemainScreen>
           _hasError = true;
           _errorMessage = result['message'] ?? "Location not allowed";
         });
-        _showErrorDialog(result['message'] ?? 'You are outside any office area');
+        _showErrorDialog(
+          result['message'] ?? 'You are outside any office area',
+        );
         Timer(const Duration(seconds: 3), () {
           if (mounted) setState(() => _hasError = false);
         });
@@ -891,9 +890,9 @@ class _HomemainScreenState extends State<HomemainScreen>
           _showSuccess = true;
         });
         if (isPunchIn) {
-          await punchProvider.setPunchIn(utcNow);
+          await punchProvider.setPunchIn(localNow);
         } else {
-          await punchProvider.setPunchOut(utcNow);
+          await punchProvider.setPunchOut(localNow);
         }
         _showInfoDialog(
           result['message'] ?? 'Punch saved offline',
@@ -904,16 +903,17 @@ class _HomemainScreenState extends State<HomemainScreen>
         });
       } else if (result['success']) {
         if (isPunchIn) {
-          await punchProvider.setPunchIn(utcNow);
+          await punchProvider.setPunchIn(localNow);
         } else {
-          await punchProvider.setPunchOut(utcNow);
+          await punchProvider.setPunchOut(localNow);
         }
         _successText = isPunchIn
-            ? "Checked in at ${DateFormat('hh:mm a').format(riyadhNow)}"
-            : "Checked out at ${DateFormat('hh:mm a').format(riyadhNow)}";
+            ? "Checked in at ${DateFormat('hh:mm a').format(localNow)}"
+            : "Checked out at ${DateFormat('hh:mm a').format(localNow)}";
         setState(() {
           _showSuccess = true;
         });
+        await punchProvider.loadDailyPunches();
         _showSuccessDialog(
           message: result['message'] ?? _successText,
           isPunchIn: isPunchIn,
@@ -922,7 +922,7 @@ class _HomemainScreenState extends State<HomemainScreen>
           if (mounted) setState(() => _showSuccess = false);
         });
         _fetchLocation();
-        final currentMonth = DateTime(utcNow.year, utcNow.month);
+        final currentMonth = DateTime(localNow.year, localNow.month);
         await attendanceProvider.loadMonthAttendance(employeeId, currentMonth);
       } else {
         setState(() {
@@ -1110,18 +1110,21 @@ class _HomemainScreenState extends State<HomemainScreen>
             border: Border.all(color: errorColor.withOpacity(0.3), width: 1.5),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
               Icon(errorIcon, size: 16, color: errorColor),
               const SizedBox(width: 4),
-              Text(
-                _locationError,
-                style: TextStyle(
-                  fontSize: screenWidth * 0.03,
-                  color: errorColor,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  _locationError,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.03,
+                    color: errorColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
               ),
               const SizedBox(width: 8),
               GestureDetector(
@@ -1629,10 +1632,11 @@ class _HomemainScreenState extends State<HomemainScreen>
                                           Row(
                                             children: [
                                               GestureDetector(
-                                                onTap: () => Navigator.pushNamed(
-                                                  context,
-                                                  '/profilescreen',
-                                                ),
+                                                onTap: () =>
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      '/profilescreen',
+                                                    ),
                                                 child: Container(
                                                   width: screenWidth * 0.12,
                                                   height: screenWidth * 0.12,
@@ -1657,19 +1661,22 @@ class _HomemainScreenState extends State<HomemainScreen>
                                                     child: ClipOval(
                                                       child:
                                                           (imagePath != null &&
-                                                              imagePath.isNotEmpty)
+                                                              imagePath
+                                                                  .isNotEmpty)
                                                           ? Image.network(
                                                               "https://ppecon.erpnext.com$imagePath",
                                                               fit: BoxFit.cover,
-                                                              width:
-                                                                  double.infinity,
-                                                              height:
-                                                                  double.infinity,
+                                                              width: double
+                                                                  .infinity,
+                                                              height: double
+                                                                  .infinity,
                                                               headers: {
                                                                 "Cookie":
                                                                     AuthService
                                                                         .cookies
-                                                                        .join("; "),
+                                                                        .join(
+                                                                          "; ",
+                                                                        ),
                                                               },
                                                               errorBuilder:
                                                                   (
@@ -1692,12 +1699,15 @@ class _HomemainScreenState extends State<HomemainScreen>
                                                   ),
                                                 ),
                                               ),
-                                              SizedBox(width: screenWidth * 0.03),
+                                              SizedBox(
+                                                width: screenWidth * 0.03,
+                                              ),
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Text(
                                                       _greeting,
@@ -1706,11 +1716,13 @@ class _HomemainScreenState extends State<HomemainScreen>
                                                             screenWidth * 0.035,
                                                         color: Colors.white
                                                             .withOpacity(0.9),
-                                                        fontWeight: FontWeight.w500,
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                     SizedBox(
-                                                      height: screenHeight * 0.003,
+                                                      height:
+                                                          screenHeight * 0.003,
                                                     ),
                                                     Text(
                                                       user?['full_name'] ??
@@ -1718,13 +1730,16 @@ class _HomemainScreenState extends State<HomemainScreen>
                                                       style: TextStyle(
                                                         fontSize:
                                                             screenWidth * 0.05,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                         color: Colors.white,
                                                         letterSpacing: 0.5,
                                                         shadows: [
                                                           Shadow(
                                                             color: Colors.black
-                                                                .withOpacity(0.3),
+                                                                .withOpacity(
+                                                                  0.3,
+                                                                ),
                                                             blurRadius: 10,
                                                           ),
                                                         ],
@@ -1752,7 +1767,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                                                 );
                                               },
                                               child: Container(
-                                                padding: const EdgeInsets.all(10),
+                                                padding: const EdgeInsets.all(
+                                                  10,
+                                                ),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
                                                       .withOpacity(0.2),
@@ -1804,9 +1821,13 @@ class _HomemainScreenState extends State<HomemainScreen>
                                               Colors.white.withOpacity(0.1),
                                             ],
                                           ),
-                                          borderRadius: BorderRadius.circular(30),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(0.3),
+                                            color: Colors.white.withOpacity(
+                                              0.3,
+                                            ),
                                             width: 1,
                                           ),
                                         ),
@@ -1847,8 +1868,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                                     shape: BoxShape.circle,
                                     gradient: RadialGradient(
                                       colors: [
-                                        _punchButtonColor(punchProvider)
-                                            .withOpacity(0.15),
+                                        _punchButtonColor(
+                                          punchProvider,
+                                        ).withOpacity(0.15),
                                         Colors.transparent,
                                       ],
                                       radius: 0.8,
@@ -1894,23 +1916,28 @@ class _HomemainScreenState extends State<HomemainScreen>
                                   shape: const CircleBorder(),
                                   child: InkWell(
                                     customBorder: const CircleBorder(),
-                                    borderRadius:
-                                        BorderRadius.circular(buttonSize),
+                                    borderRadius: BorderRadius.circular(
+                                      buttonSize,
+                                    ),
                                     onTap: _biometricAvailable
                                         ? _onPunchTap
                                         : null,
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 300),
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
                                       width: buttonSize,
                                       height: buttonSize,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         color: isDarkMode ? slate : pureWhite,
-                                        boxShadow:
-                                            _getButtonShadows(punchProvider),
+                                        boxShadow: _getButtonShadows(
+                                          punchProvider,
+                                        ),
                                         border: Border.all(
-                                          color: _punchButtonColor(punchProvider)
-                                              .withOpacity(0.3),
+                                          color: _punchButtonColor(
+                                            punchProvider,
+                                          ).withOpacity(0.3),
                                           width: screenWidth * 0.005,
                                         ),
                                       ),
@@ -1951,14 +1978,13 @@ class _HomemainScreenState extends State<HomemainScreen>
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
+                                  //  .add(hours:3) hataya — direct local time display
                                   _buildTimeWidget(
                                     punchProvider.punchInTime == null
                                         ? "--:--"
-                                        : DateFormat('hh:mm a').format(
-                                            punchProvider.punchInTime!.add(
-                                              const Duration(hours: 3),
-                                            ),
-                                          ),
+                                        : DateFormat(
+                                            'hh:mm a',
+                                          ).format(punchProvider.punchInTime!),
                                     "PUNCH IN",
                                     skyBlue,
                                     Icons.login_rounded,
@@ -1966,11 +1992,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                                   _buildTimeWidget(
                                     punchProvider.punchOutTime == null
                                         ? "--:--"
-                                        : DateFormat('hh:mm a').format(
-                                            punchProvider.punchOutTime!.add(
-                                              const Duration(hours: 3),
-                                            ),
-                                          ),
+                                        : DateFormat(
+                                            'hh:mm a',
+                                          ).format(punchProvider.punchOutTime!),
                                     "PUNCH OUT",
                                     deepSky,
                                     Icons.logout_rounded,
@@ -2005,7 +2029,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                             ),
                             if (_hasError)
                               Padding(
-                                padding: EdgeInsets.only(top: screenHeight * 0.02),
+                                padding: EdgeInsets.only(
+                                  top: screenHeight * 0.02,
+                                ),
                                 child: AnimatedSlide(
                                   duration: const Duration(milliseconds: 300),
                                   offset: _hasError
@@ -2030,7 +2056,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                                         Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.2),
+                                            color: Colors.white.withOpacity(
+                                              0.2,
+                                            ),
                                             shape: BoxShape.circle,
                                           ),
                                           child: const Icon(

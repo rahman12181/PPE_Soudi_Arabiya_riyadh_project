@@ -6,7 +6,6 @@ class AttendanceService {
   static const String baseUrl =
       "https://ppecon.erpnext.com/api/resource/Employee%20Checkin";
 
-  
   Future<List<dynamic>> fetchLogs({
     required String employeeId,
     required DateTime start,
@@ -66,7 +65,7 @@ class AttendanceService {
 
       for (final log in logs) {
         final type = log["log_type"];
-        final time = DateTime.parse(log["time"]).toUtc();
+        final time = DateTime.parse(log["time"]);
 
         if (type == "IN" && punchIn == null) {
           punchIn = time;
