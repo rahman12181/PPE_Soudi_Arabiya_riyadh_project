@@ -1,5 +1,3 @@
-
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -23,18 +21,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   late ScrollController _scrollController;
   bool _isLoading = false;
 
-  
-  static const Color skyBlue = Color(0xFF87CEEB);  
-  static const Color lightSky = Color(0xFFE0F2FE);  
-  static const Color mediumSky = Color(0xFF7EC8E0);  
-  static const Color deepSky = Color(0xFF00A5E0);    
+  static const Color skyBlue = Color(0xFF87CEEB);
+  static const Color lightSky = Color(0xFFE0F2FE);
+  static const Color mediumSky = Color(0xFF7EC8E0);
+  static const Color deepSky = Color(0xFF00A5E0);
   static const Color offWhite = Color(0xFFF8FAFC);
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color charcoal = Color(0xFF1E293B);
   static const Color slate = Color(0xFF334155);
   static const Color steel = Color(0xFF475569);
 
-  
   List<Color> _getHeaderGradientColors(bool isDarkMode) {
     return isDarkMode
         ? [charcoal, slate, const Color(0xFF1E1E2E)]
@@ -57,7 +53,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> _refreshAttendance() async {
-    if (_isLoading) return; 
+    if (_isLoading) return;
 
     setState(() => _isLoading = true);
 
@@ -73,42 +69,66 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             SnackBar(
               content: const Row(
                 children: [
-                  Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   SizedBox(width: 12),
                   Expanded(child: Text("Employee ID not found")),
                 ],
               ),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
         }
         return;
-      }      
-      
-      attendanceProvider.clearError();
-      
-      await attendanceProvider.loadMonthAttendance(employeeId, _currentMonth);
-      
-      if (mounted) {
-        setState(() {}); 
       }
-      
-    } catch (e) {
+
+      attendanceProvider.clearError();
+
+      await attendanceProvider.loadMonthAttendance(employeeId, _currentMonth);
+
       if (mounted) {
+        setState(() {});
+      }
+    } // ✅ BAAD MEIN
+    catch (e) {
+      if (mounted) {
+        final rawMsg = e.toString().replaceAll("Exception:", "").trim();
+
+        // Agar socket/network error hai to simple message dikhao
+        final displayMsg =
+            (rawMsg.toLowerCase().contains("socket") ||
+                rawMsg.toLowerCase().contains("http") ||
+                rawMsg.toLowerCase().contains("connection") ||
+                rawMsg.toLowerCase().contains("network") ||
+                rawMsg.toLowerCase().contains("internet"))
+            ? "No internet connection. Please check your network."
+            : "Failed to load attendance. Please try again."; // generic, no API info
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: Text("Failed to load attendance: ${e.toString()}")),
+                Expanded(child: Text(displayMsg)), // ✅ clean message
               ],
             ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -181,7 +201,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     AttendanceStatus? status;
     double opacity = 1.0;
 
-    
     for (final key in attendanceProvider.attendanceMap.keys) {
       if (key.year == date.year &&
           key.month == date.month &&
@@ -204,10 +223,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         status ??= AttendanceStatus.checkedIn;
         bgColor = _getStatusColor(status);
         textColor = Colors.white;
-        border = Border.all(
-          color: skyBlue,
-          width: 2.5,
-        );
+        border = Border.all(color: skyBlue, width: 2.5);
       } else {
         bgColor = isDarkMode ? slate.withOpacity(0.3) : Colors.grey.shade200;
         textColor = isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600;
@@ -236,7 +252,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           color: bgColor,
           border: border,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: date.isAtSameMomentAs(today) && punchProvider.punchInTime != null
+          boxShadow:
+              date.isAtSameMomentAs(today) && punchProvider.punchInTime != null
               ? [
                   BoxShadow(
                     color: skyBlue.withOpacity(0.3),
@@ -311,17 +328,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             offset: const Offset(0, 8),
           ),
         ],
-        border: Border.all(
-          color: skyBlue.withOpacity(0.2),
-          width: 1.5,
-        ),
+        border: Border.all(color: skyBlue.withOpacity(0.2), width: 1.5),
       ),
       child: Padding(
         padding: EdgeInsets.all(screenWidth * 0.035),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            
             Container(
               width: screenWidth * 0.14,
               height: screenWidth * 0.14,
@@ -385,7 +398,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
             SizedBox(width: screenWidth * 0.035),
 
-            
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,9 +436,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             vertical: screenHeight * 0.004,
                           ),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: gradientColors,
-                            ),
+                            gradient: LinearGradient(colors: gradientColors),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
@@ -451,11 +461,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                   SizedBox(height: screenHeight * 0.01),
 
-                  
                   Container(
                     padding: EdgeInsets.all(screenWidth * 0.025),
                     decoration: BoxDecoration(
-                      color: isDarkMode ? slate.withOpacity(0.3) : Colors.grey[50]!,
+                      color: isDarkMode
+                          ? slate.withOpacity(0.3)
+                          : Colors.grey[50]!,
                       borderRadius: BorderRadius.circular(15),
                       border: Border.all(
                         color: skyBlue.withOpacity(0.1),
@@ -490,7 +501,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                         SizedBox(height: screenHeight * 0.008),
 
-                        
                         Container(
                           width: double.infinity,
                           padding: EdgeInsets.symmetric(
@@ -518,7 +528,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 "Total: ",
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.03,
-                                  color: isDarkMode ? Colors.white70 : Colors.grey[700],
+                                  color: isDarkMode
+                                      ? Colors.white70
+                                      : Colors.grey[700],
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -564,10 +576,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: color.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: color.withOpacity(0.2), width: 1),
           ),
           child: Icon(icon, color: color, size: screenWidth * 0.035),
         ),
@@ -581,7 +590,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 label,
                 style: TextStyle(
                   fontSize: screenWidth * 0.028,
-                  color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600,
+                  color: isDarkMode
+                      ? Colors.grey.shade500
+                      : Colors.grey.shade600,
                   fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
@@ -618,10 +629,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       decoration: BoxDecoration(
         color: isDarkMode ? slate.withOpacity(0.3) : pureWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: skyBlue.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: skyBlue.withOpacity(0.2), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -630,9 +638,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             width: screenWidth * 0.025,
             height: screenWidth * 0.025,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.7)],
-              ),
+              gradient: LinearGradient(colors: [color, color.withOpacity(0.7)]),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -670,10 +676,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       decoration: BoxDecoration(
         color: isDarkMode ? slate.withOpacity(0.3) : pureWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: skyBlue.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: skyBlue.withOpacity(0.2), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -683,10 +686,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             height: screenWidth * 0.025,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: skyBlue,
-                width: 2,
-              ),
+              border: Border.all(color: skyBlue, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: skyBlue.withOpacity(0.3),
@@ -737,7 +737,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
-        systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: isDarkMode ? charcoal : offWhite,
@@ -746,7 +748,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           bottom: false,
           child: Column(
             children: [
-              
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(
@@ -822,7 +823,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ),
 
-              
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: _refreshAttendance,
@@ -834,13 +834,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       parent: AlwaysScrollableScrollPhysics(),
                     ),
                     slivers: [
-                      
                       SliverToBoxAdapter(
                         child: Container(
                           margin: EdgeInsets.all(screenWidth * 0.035),
                           padding: EdgeInsets.all(screenWidth * 0.035),
                           decoration: BoxDecoration(
-                            color: isDarkMode ? slate.withOpacity(0.5) : pureWhite,
+                            color: isDarkMode
+                                ? slate.withOpacity(0.5)
+                                : pureWhite,
                             borderRadius: BorderRadius.circular(25),
                             border: Border.all(
                               color: skyBlue.withOpacity(0.2),
@@ -857,7 +858,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           ),
                           child: Column(
                             children: [
-                              
                               Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: screenWidth * 0.02,
@@ -872,23 +872,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Material(
                                       color: Colors.transparent,
                                       child: InkWell(
-                                        onTap: _isLoading ? null : () {
-                                          setState(() {
-                                            _currentMonth = DateTime(
-                                              _currentMonth.year,
-                                              _currentMonth.month - 1,
-                                            );
-                                          });
-                                          _refreshAttendance();
-                                        },
+                                        onTap: _isLoading
+                                            ? null
+                                            : () {
+                                                setState(() {
+                                                  _currentMonth = DateTime(
+                                                    _currentMonth.year,
+                                                    _currentMonth.month - 1,
+                                                  );
+                                                });
+                                                _refreshAttendance();
+                                              },
                                         borderRadius: BorderRadius.circular(20),
                                         child: Container(
-                                          padding: EdgeInsets.all(screenWidth * 0.02),
+                                          padding: EdgeInsets.all(
+                                            screenWidth * 0.02,
+                                          ),
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
                                               colors: gradientColors,
@@ -910,7 +915,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                         vertical: screenHeight * 0.01,
                                       ),
                                       child: Text(
-                                        DateFormat('MMMM yyyy').format(_currentMonth),
+                                        DateFormat(
+                                          'MMMM yyyy',
+                                        ).format(_currentMonth),
                                         style: TextStyle(
                                           fontSize: screenWidth * 0.045,
                                           fontWeight: FontWeight.w800,
@@ -935,14 +942,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             : null,
                                         borderRadius: BorderRadius.circular(20),
                                         child: Container(
-                                          padding: EdgeInsets.all(screenWidth * 0.02),
+                                          padding: EdgeInsets.all(
+                                            screenWidth * 0.02,
+                                          ),
                                           decoration: BoxDecoration(
                                             gradient: canGoNext
                                                 ? LinearGradient(
                                                     colors: gradientColors,
                                                   )
                                                 : const LinearGradient(
-                                                    colors: [Colors.grey, Colors.grey],
+                                                    colors: [
+                                                      Colors.grey,
+                                                      Colors.grey,
+                                                    ],
                                                   ),
                                             shape: BoxShape.circle,
                                           ),
@@ -960,19 +972,24 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                               SizedBox(height: screenHeight * 0.02),
 
-                              
                               if (_isLoading)
                                 LinearProgressIndicator(
-                                  backgroundColor: isDarkMode ? slate : Colors.grey[200],
-                                  valueColor: const AlwaysStoppedAnimation<Color>(skyBlue),
+                                  backgroundColor: isDarkMode
+                                      ? slate
+                                      : Colors.grey[200],
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        skyBlue,
+                                      ),
                                   minHeight: 2,
                                 ),
 
-                              
                               if (attendanceProvider.errorMessage != null)
                                 Container(
                                   padding: EdgeInsets.all(screenWidth * 0.03),
-                                  margin: EdgeInsets.only(bottom: screenHeight * 0.015),
+                                  margin: EdgeInsets.only(
+                                    bottom: screenHeight * 0.015,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.red,
                                     borderRadius: BorderRadius.circular(16),
@@ -1012,7 +1029,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      
+
                                       GestureDetector(
                                         onTap: () {
                                           attendanceProvider.clearError();
@@ -1032,16 +1049,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                               SizedBox(height: screenHeight * 0.015),
 
-                              
                               GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 7,
-                                  crossAxisSpacing: screenWidth * 0.01,
-                                  mainAxisSpacing: screenWidth * 0.01,
-                                  childAspectRatio: 1,
-                                ),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 7,
+                                      crossAxisSpacing: screenWidth * 0.01,
+                                      mainAxisSpacing: screenWidth * 0.01,
+                                      childAspectRatio: 1,
+                                    ),
                                 itemCount: daysInMonth,
                                 itemBuilder: (context, index) {
                                   final day = index + 1;
@@ -1056,7 +1073,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                               SizedBox(height: screenHeight * 0.025),
 
-                              
                               Wrap(
                                 spacing: screenWidth * 0.02,
                                 runSpacing: screenHeight * 0.01,
@@ -1076,7 +1092,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                       ),
 
-                      
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(
@@ -1107,7 +1122,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.045,
                                   fontWeight: FontWeight.w800,
-                                  color: isDarkMode ? Colors.white : Colors.black87,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
                                 ),
                               ),
                             ],
@@ -1115,7 +1132,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                       ),
 
-                      
                       if (monthlyLogs.isNotEmpty)
                         SliverPadding(
                           padding: EdgeInsets.fromLTRB(
@@ -1125,13 +1141,21 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             screenHeight * 0.03,
                           ),
                           sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate((context, index) {
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
                               final log = monthlyLogs[index];
                               final now = DateTime.now();
-                              final today = DateTime(now.year, now.month, now.day);
+                              final today = DateTime(
+                                now.year,
+                                now.month,
+                                now.day,
+                              );
 
                               if (log.date.isAtSameMomentAs(today)) {
-                                final punchProvider = context.read<PunchProvider>();
+                                final punchProvider = context
+                                    .read<PunchProvider>();
                                 if (punchProvider.punchInTime == null) {
                                   return const SizedBox.shrink();
                                 }
@@ -1141,13 +1165,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             }, childCount: monthlyLogs.length),
                           ),
                         )
-                      else if (!_isLoading && attendanceProvider.errorMessage == null)
+                      else if (!_isLoading &&
+                          attendanceProvider.errorMessage == null)
                         SliverToBoxAdapter(
                           child: Container(
                             margin: EdgeInsets.all(screenWidth * 0.05),
                             padding: EdgeInsets.all(screenWidth * 0.08),
                             decoration: BoxDecoration(
-                              color: isDarkMode ? slate.withOpacity(0.5) : pureWhite,
+                              color: isDarkMode
+                                  ? slate.withOpacity(0.5)
+                                  : pureWhite,
                               borderRadius: BorderRadius.circular(25),
                               border: Border.all(
                                 color: skyBlue.withOpacity(0.2),
@@ -1174,7 +1201,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   style: TextStyle(
                                     fontSize: screenWidth * 0.04,
                                     fontWeight: FontWeight.w700,
-                                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                                    color: isDarkMode
+                                        ? Colors.white70
+                                        : Colors.black87,
                                   ),
                                 ),
                                 SizedBox(height: screenHeight * 0.008),
@@ -1182,7 +1211,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   "Attendance records will appear here",
                                   style: TextStyle(
                                     fontSize: screenWidth * 0.032,
-                                    color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600,
+                                    color: isDarkMode
+                                        ? Colors.grey.shade500
+                                        : Colors.grey.shade600,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),

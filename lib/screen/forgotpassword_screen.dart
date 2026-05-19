@@ -52,12 +52,13 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _animationController.forward();
   }
@@ -71,7 +72,7 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
 
   void _showSnackbar(String message, Color color) {
     if (!mounted) return;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -105,9 +106,7 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 3),
       ),
@@ -126,9 +125,7 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
 
     try {
       final auth = AuthService();
-      final message = await auth.forgotPassword(
-        _emailController.text.trim(),
-      );
+      final message = await auth.forgotPassword(_emailController.text.trim());
 
       if (!mounted) return;
 
@@ -143,16 +140,27 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const LoginScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
       });
+      // ✅ BAAD MEIN
     } catch (e) {
       if (!mounted) return;
       setState(() => _isloading = false);
-      _showSnackbar(e.toString(), Colors.red);
+
+      final rawMsg = e.toString().toLowerCase();
+      final displayMsg =
+          (rawMsg.contains("socket") ||
+              rawMsg.contains("connection") ||
+              rawMsg.contains("network") ||
+              rawMsg.contains("internet") ||
+              rawMsg.contains("host lookup") ||
+              rawMsg.contains("failed host"))
+          ? "No internet connection. Please check your network."
+          : "Something went wrong. Please try again.";
+
+      _showSnackbar(displayMsg, Colors.red); // ✅ clean
     }
   }
 
@@ -196,9 +204,7 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                 ),
                 padding: EdgeInsets.zero, // Remove default padding
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
                     child: Padding(
                       padding: EdgeInsets.only(
@@ -219,7 +225,8 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                 children: [
                                   // Back Button and Logo Row
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       // Back Button with proper touch target
                                       Semantics(
@@ -243,16 +250,19 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                           child: Material(
                                             color: Colors.transparent,
                                             child: InkWell(
-                                              onTap: () => Navigator.pop(context),
-                                              borderRadius: BorderRadius.circular(
-                                                screenWidth * 0.1,
-                                              ),
+                                              onTap: () =>
+                                                  Navigator.pop(context),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    screenWidth * 0.1,
+                                                  ),
                                               child: Padding(
                                                 padding: EdgeInsets.all(
                                                   screenWidth * 0.02,
                                                 ),
                                                 child: Icon(
-                                                  Icons.arrow_back_ios_new_rounded,
+                                                  Icons
+                                                      .arrow_back_ios_new_rounded,
                                                   color: Colors.white,
                                                   size: screenWidth * 0.05,
                                                 ),
@@ -261,7 +271,7 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                           ),
                                         ),
                                       ),
-                                      
+
                                       // Premium Logo with Sky Blue Theme
                                       Semantics(
                                         label: 'Pioneer Tech Logo',
@@ -295,27 +305,36 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                                   screenWidth * 0.015,
                                                 ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white.withOpacity(0.2),
-                                                  borderRadius: BorderRadius.circular(
-                                                    screenWidth * 0.02,
-                                                  ),
+                                                  color: Colors.white
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        screenWidth * 0.02,
+                                                      ),
                                                 ),
                                                 child: Image.asset(
                                                   "assets/images/app_icon.png",
                                                   width: screenWidth * 0.08,
                                                   color: Colors.white,
-                                                  errorBuilder: (
-                                                    context, error, stackTrace,
-                                                  ) {
-                                                    return Icon(
-                                                      Icons.apps_rounded,
-                                                      color: Colors.white,
-                                                      size: screenWidth * 0.08,
-                                                    );
-                                                  },
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return Icon(
+                                                          Icons.apps_rounded,
+                                                          color: Colors.white,
+                                                          size:
+                                                              screenWidth *
+                                                              0.08,
+                                                        );
+                                                      },
                                                 ),
                                               ),
-                                              SizedBox(width: screenWidth * 0.02),
+                                              SizedBox(
+                                                width: screenWidth * 0.02,
+                                              ),
                                               Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
@@ -324,8 +343,10 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                                   Text(
                                                     "PIONEER",
                                                     style: TextStyle(
-                                                      fontSize: screenWidth * 0.04,
-                                                      fontWeight: FontWeight.w700,
+                                                      fontSize:
+                                                          screenWidth * 0.04,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                       color: Colors.white,
                                                       letterSpacing: 2,
                                                       height: 1.0,
@@ -341,8 +362,10 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                                   Text(
                                                     "TECH",
                                                     style: TextStyle(
-                                                      fontSize: screenWidth * 0.04,
-                                                      fontWeight: FontWeight.w900,
+                                                      fontSize:
+                                                          screenWidth * 0.04,
+                                                      fontWeight:
+                                                          FontWeight.w900,
                                                       color: Colors.white,
                                                       letterSpacing: 2,
                                                       height: 1.0,
@@ -361,7 +384,7 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                           ),
                                         ),
                                       ),
-                                      
+
                                       // Empty SizedBox for balance
                                       SizedBox(width: screenWidth * 0.1),
                                     ],
@@ -448,20 +471,25 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                               color: textColor,
                                             ),
                                           ),
-                                          SizedBox(height: screenHeight * 0.012),
+                                          SizedBox(
+                                            height: screenHeight * 0.012,
+                                          ),
                                           Container(
                                             decoration: BoxDecoration(
                                               color: inputBgColor,
-                                              borderRadius: BorderRadius.circular(
-                                                screenWidth * 0.04,
-                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    screenWidth * 0.04,
+                                                  ),
                                               border: Border.all(
                                                 color: borderColor,
                                                 width: 1.5,
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: skyBlue.withOpacity(0.1),
+                                                  color: skyBlue.withOpacity(
+                                                    0.1,
+                                                  ),
                                                   blurRadius: 15,
                                                   spreadRadius: 1,
                                                   offset: const Offset(0, 4),
@@ -476,7 +504,8 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                               ),
                                               keyboardType:
                                                   TextInputType.emailAddress,
-                                              textInputAction: TextInputAction.done,
+                                              textInputAction:
+                                                  TextInputAction.done,
                                               onFieldSubmitted: (_) =>
                                                   _handleForgotPassword(),
                                               enabled: !_isloading,
@@ -484,8 +513,8 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                                 hintText: "Enter your email",
                                                 hintStyle: TextStyle(
                                                   fontSize: screenWidth * 0.035,
-                                                  color:
-                                                      subtitleColor.withOpacity(0.7),
+                                                  color: subtitleColor
+                                                      .withOpacity(0.7),
                                                 ),
                                                 prefixIcon: Container(
                                                   padding: EdgeInsets.all(
@@ -500,8 +529,9 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                                 border: InputBorder.none,
                                                 contentPadding:
                                                     EdgeInsets.symmetric(
-                                                  vertical: screenHeight * 0.015,
-                                                ),
+                                                      vertical:
+                                                          screenHeight * 0.015,
+                                                    ),
                                               ),
                                               validator: (value) {
                                                 if (value == null ||
@@ -550,15 +580,18 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                             ],
                                           ),
                                           child: ElevatedButton(
-                                            onPressed:
-                                                _isloading ? null : _handleForgotPassword,
+                                            onPressed: _isloading
+                                                ? null
+                                                : _handleForgotPassword,
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.transparent,
+                                              backgroundColor:
+                                                  Colors.transparent,
                                               shadowColor: Colors.transparent,
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                  screenWidth * 0.04,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      screenWidth * 0.04,
+                                                    ),
                                               ),
                                             ),
                                             child: _isloading
@@ -567,38 +600,49 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                                     width: screenHeight * 0.03,
                                                     child:
                                                         const CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2.5,
-                                                    ),
+                                                          color: Colors.white,
+                                                          strokeWidth: 2.5,
+                                                        ),
                                                   )
                                                 : Row(
                                                     mainAxisAlignment:
-                                                        MainAxisAlignment.center,
+                                                        MainAxisAlignment
+                                                            .center,
                                                     children: [
                                                       Container(
                                                         padding: EdgeInsets.all(
                                                           screenWidth * 0.01,
                                                         ),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white
-                                                              .withOpacity(0.2),
-                                                          shape: BoxShape.circle,
-                                                        ),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.2,
+                                                                  ),
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                            ),
                                                         child: Icon(
                                                           Icons.send_rounded,
-                                                          size: screenWidth * 0.05,
+                                                          size:
+                                                              screenWidth *
+                                                              0.05,
                                                           color: Colors.white,
                                                         ),
                                                       ),
                                                       SizedBox(
-                                                        width: screenWidth * 0.02,
+                                                        width:
+                                                            screenWidth * 0.02,
                                                       ),
                                                       Text(
                                                         "SEND RESET LINK",
                                                         style: TextStyle(
                                                           fontSize:
-                                                              screenWidth * 0.04,
-                                                          fontWeight: FontWeight.w700,
+                                                              screenWidth *
+                                                              0.04,
+                                                          fontWeight:
+                                                              FontWeight.w700,
                                                           color: Colors.white,
                                                           letterSpacing: 0.5,
                                                         ),
@@ -660,7 +704,9 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                         fontWeight: FontWeight.w700,
                                         color: skyBlue,
                                         decoration: TextDecoration.underline,
-                                        decorationColor: skyBlue.withOpacity(0.3),
+                                        decorationColor: skyBlue.withOpacity(
+                                          0.3,
+                                        ),
                                       ),
                                       recognizer: TapGestureRecognizer()
                                         ..onTap = () {

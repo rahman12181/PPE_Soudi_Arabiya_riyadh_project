@@ -1,5 +1,3 @@
-
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -19,24 +17,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   final TextEditingController _emailController = TextEditingController();
 
   bool _isLoading = false;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeInAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
 
-  
-  static const Color skyBlue = Color(0xFF87CEEB); 
-  static const Color lightSky = Color(0xFFE0F2FE); 
-  static const Color mediumSky = Color(0xFF7EC8E0); 
-  static const Color deepSky = Color(0xFF00A5E0); 
+  static const Color skyBlue = Color(0xFF87CEEB);
+  static const Color lightSky = Color(0xFFE0F2FE);
+  static const Color mediumSky = Color(0xFF7EC8E0);
+  static const Color deepSky = Color(0xFF00A5E0);
   static const Color offWhite = Color(0xFFF8FAFC);
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color charcoal = Color(0xFF1E293B);
   static const Color slate = Color(0xFF334155);
   static const Color steel = Color(0xFF475569);
 
-  
   List<Color> _getHeaderGradientColors(bool isDarkMode) {
     return isDarkMode
         ? [charcoal, slate, const Color(0xFF1E1E2E)]
@@ -46,36 +42,31 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    
+
     _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
-    
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
     );
-    
+
     _animationController.forward();
   }
 
@@ -90,7 +81,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final gradientColors = _getHeaderGradientColors(isDarkMode);
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -105,10 +96,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
             decoration: BoxDecoration(
               color: isDarkMode ? slate : pureWhite,
               borderRadius: BorderRadius.circular(screenWidth * 0.06),
-              border: Border.all(
-                color: skyBlue.withOpacity(0.3),
-                width: 2,
-              ),
+              border: Border.all(color: skyBlue.withOpacity(0.3), width: 2),
               boxShadow: [
                 BoxShadow(
                   color: skyBlue.withOpacity(0.2),
@@ -131,9 +119,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                       child: Container(
                         padding: EdgeInsets.all(screenWidth * 0.04),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: gradientColors,
-                          ),
+                          gradient: LinearGradient(colors: gradientColors),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -212,7 +198,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   void _showErrorDialog(String message) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -227,10 +213,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
             decoration: BoxDecoration(
               color: isDarkMode ? slate : pureWhite,
               borderRadius: BorderRadius.circular(screenWidth * 0.06),
-              border: Border.all(
-                color: Colors.red.withOpacity(0.3),
-                width: 2,
-              ),
+              border: Border.all(color: Colors.red.withOpacity(0.3), width: 2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.red.withOpacity(0.2),
@@ -328,11 +311,28 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
       setState(() => _isLoading = false);
 
       _showSuccessDialog();
+      // ✅ BAAD MEIN
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      _showErrorDialog(e.toString());
+      final rawMsg = e
+          .toString()
+          .replaceAll("Exception:", "")
+          .trim()
+          .toLowerCase();
+
+      final displayMsg =
+          (rawMsg.contains("socket") ||
+              rawMsg.contains("connection") ||
+              rawMsg.contains("network") ||
+              rawMsg.contains("internet") ||
+              rawMsg.contains("host lookup") ||
+              rawMsg.contains("failed host"))
+          ? "No internet connection. Please check your network."
+          : "Something went wrong. Please try again.";
+
+      _showErrorDialog(displayMsg); // ✅ clean message
     }
   }
 
@@ -343,7 +343,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final gradientColors = _getHeaderGradientColors(isDarkMode);
 
-    
     final backgroundColor = isDarkMode ? charcoal : offWhite;
     final surfaceColor = isDarkMode ? slate.withOpacity(0.5) : pureWhite;
     final textColor = isDarkMode ? pureWhite : charcoal;
@@ -351,7 +350,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     final inputBgColor = isDarkMode ? slate.withOpacity(0.5) : pureWhite;
     final borderColor = isDarkMode ? slate : Colors.grey[300]!;
 
-    
     double responsiveFontSize(double baseSize) {
       return baseSize * (screenWidth / 375);
     }
@@ -361,7 +359,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
         statusBarColor: gradientColors.first,
         statusBarIconBrightness: Brightness.light,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
-        systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
@@ -390,12 +390,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                           child: SlideTransition(
                             position: _slideAnimation,
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center, 
+                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
                                       decoration: BoxDecoration(
@@ -421,11 +421,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                         onPressed: () => Navigator.pop(context),
                                       ),
                                     ),
-                                    
+
                                     ScaleTransition(
                                       scale: _scaleAnimation,
                                       child: Container(
-                                        padding: EdgeInsets.all(screenWidth * 0.02),
+                                        padding: EdgeInsets.all(
+                                          screenWidth * 0.02,
+                                        ),
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             colors: gradientColors,
@@ -452,10 +454,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                 screenWidth * 0.015,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: Colors.white.withOpacity(0.2),
-                                                borderRadius: BorderRadius.circular(
-                                                  screenWidth * 0.02,
+                                                color: Colors.white.withOpacity(
+                                                  0.2,
                                                 ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      screenWidth * 0.02,
+                                                    ),
                                               ),
                                               child: Image.asset(
                                                 "assets/images/app_icon.png",
@@ -472,7 +477,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                 Text(
                                                   "PIONEER",
                                                   style: TextStyle(
-                                                    fontSize: responsiveFontSize(16),
+                                                    fontSize:
+                                                        responsiveFontSize(16),
                                                     fontWeight: FontWeight.w700,
                                                     color: Colors.white,
                                                     letterSpacing: 2,
@@ -489,7 +495,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                 Text(
                                                   "TECH",
                                                   style: TextStyle(
-                                                    fontSize: responsiveFontSize(16),
+                                                    fontSize:
+                                                        responsiveFontSize(16),
                                                     fontWeight: FontWeight.w900,
                                                     color: Colors.white,
                                                     letterSpacing: 2,
@@ -514,7 +521,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                                 SizedBox(height: screenHeight * 0.03),
 
-                                
                                 TweenAnimationBuilder(
                                   tween: Tween<double>(begin: 0, end: 1),
                                   duration: const Duration(milliseconds: 600),
@@ -523,7 +529,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                     return Opacity(
                                       opacity: value,
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Text(
                                             "Reset Password",
@@ -535,7 +542,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                             ),
                                             textAlign: TextAlign.center,
                                           ),
-                                          SizedBox(height: screenHeight * 0.005),
+                                          SizedBox(
+                                            height: screenHeight * 0.005,
+                                          ),
                                           Text(
                                             "Enter your email to receive reset instructions",
                                             style: TextStyle(
@@ -553,7 +562,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                                 SizedBox(height: screenHeight * 0.04),
 
-                                
                                 TweenAnimationBuilder(
                                   tween: Tween<double>(begin: 0, end: 1),
                                   duration: const Duration(milliseconds: 600),
@@ -571,7 +579,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                     key: _formKey,
                                     child: Column(
                                       children: [
-                                        
                                         Container(
                                           decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(
@@ -588,7 +595,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                           ),
                                           child: TextFormField(
                                             controller: _emailController,
-                                            keyboardType: TextInputType.emailAddress,
+                                            keyboardType:
+                                                TextInputType.emailAddress,
                                             style: TextStyle(
                                               fontSize: responsiveFontSize(16),
                                               fontWeight: FontWeight.w500,
@@ -598,14 +606,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                             decoration: InputDecoration(
                                               labelText: "Email address",
                                               labelStyle: TextStyle(
-                                                fontSize: responsiveFontSize(14),
+                                                fontSize: responsiveFontSize(
+                                                  14,
+                                                ),
                                                 color: subtitleColor,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                               floatingLabelStyle: TextStyle(
                                                 color: skyBlue,
                                                 fontWeight: FontWeight.w600,
-                                                fontSize: responsiveFontSize(14),
+                                                fontSize: responsiveFontSize(
+                                                  14,
+                                                ),
                                               ),
                                               prefixIcon: Container(
                                                 padding: EdgeInsets.all(
@@ -618,24 +630,27 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                 ),
                                               ),
                                               border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                  screenWidth * 0.04,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      screenWidth * 0.04,
+                                                    ),
                                                 borderSide: BorderSide.none,
                                               ),
                                               enabledBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                  screenWidth * 0.04,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      screenWidth * 0.04,
+                                                    ),
                                                 borderSide: BorderSide(
                                                   color: borderColor,
                                                   width: 1.5,
                                                 ),
                                               ),
                                               focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                  screenWidth * 0.04,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      screenWidth * 0.04,
+                                                    ),
                                                 borderSide: BorderSide(
                                                   color: skyBlue,
                                                   width: 2,
@@ -643,18 +658,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                               ),
                                               filled: true,
                                               fillColor: inputBgColor,
-                                              contentPadding: EdgeInsets.symmetric(
-                                                horizontal: screenWidth * 0.04,
-                                                vertical: screenHeight * 0.015,
-                                              ),
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                    horizontal:
+                                                        screenWidth * 0.04,
+                                                    vertical:
+                                                        screenHeight * 0.015,
+                                                  ),
                                             ),
                                             validator: (value) {
-                                              if (value == null || value.isEmpty) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
                                                 return "Email required";
                                               }
                                               if (!RegExp(
-                                                      r'^[a-zA-Z0-9._%+-]+@ppecon\.com$')
-                                                  .hasMatch(value)) {
+                                                r'^[a-zA-Z0-9._%+-]+@ppecon\.com$',
+                                              ).hasMatch(value)) {
                                                 return "Only @ppecon.com emails are allowed";
                                               }
                                               return null;
@@ -664,9 +683,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                                         SizedBox(height: screenHeight * 0.03),
 
-                                        
                                         Container(
-                                          padding: EdgeInsets.all(screenWidth * 0.04),
+                                          padding: EdgeInsets.all(
+                                            screenWidth * 0.04,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: skyBlue.withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(
@@ -678,12 +698,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                             ),
                                           ),
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Container(
-                                                padding: const EdgeInsets.all(4),
+                                                padding: const EdgeInsets.all(
+                                                  4,
+                                                ),
                                                 decoration: BoxDecoration(
-                                                  color: skyBlue.withOpacity(0.2),
+                                                  color: skyBlue.withOpacity(
+                                                    0.2,
+                                                  ),
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: Icon(
@@ -692,12 +717,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                   size: screenWidth * 0.05,
                                                 ),
                                               ),
-                                              SizedBox(width: screenWidth * 0.03),
+                                              SizedBox(
+                                                width: screenWidth * 0.03,
+                                              ),
                                               Expanded(
                                                 child: Text(
                                                   "We'll send a password reset link to your email. Please check your inbox.",
                                                   style: TextStyle(
-                                                    fontSize: responsiveFontSize(12),
+                                                    fontSize:
+                                                        responsiveFontSize(12),
                                                     color: skyBlue,
                                                     fontWeight: FontWeight.w500,
                                                     height: 1.4,
@@ -711,10 +739,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                                         SizedBox(height: screenHeight * 0.04),
 
-                                        
                                         TweenAnimationBuilder(
-                                          tween: Tween<double>(begin: 0, end: 1),
-                                          duration: const Duration(milliseconds: 600),
+                                          tween: Tween<double>(
+                                            begin: 0,
+                                            end: 1,
+                                          ),
+                                          duration: const Duration(
+                                            milliseconds: 600,
+                                          ),
                                           curve: Curves.elasticOut,
                                           builder: (context, double value, child) {
                                             return Transform.scale(
@@ -722,67 +754,88 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                               child: SizedBox(
                                                 width: double.infinity,
                                                 child: ElevatedButton(
-                                                  onPressed:
-                                                      _isLoading ? null : _submit,
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors.transparent,
-                                                    foregroundColor: Colors.white,
-                                                    padding: EdgeInsets.symmetric(
-                                                      vertical: screenHeight * 0.018,
-                                                    ),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                        screenWidth * 0.04,
+                                                  onPressed: _isLoading
+                                                      ? null
+                                                      : _submit,
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                        backgroundColor:
+                                                            Colors.transparent,
+                                                        foregroundColor:
+                                                            Colors.white,
+                                                        padding:
+                                                            EdgeInsets.symmetric(
+                                                              vertical:
+                                                                  screenHeight *
+                                                                  0.018,
+                                                            ),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                screenWidth *
+                                                                    0.04,
+                                                              ),
+                                                        ),
+                                                        elevation: 0,
+                                                      ).copyWith(
+                                                        backgroundColor:
+                                                            WidgetStateProperty.all(
+                                                              Colors
+                                                                  .transparent,
+                                                            ),
                                                       ),
-                                                    ),
-                                                    elevation: 0,
-                                                  ).copyWith(
-                                                    backgroundColor:
-                                                        WidgetStateProperty.all(
-                                                      Colors.transparent,
-                                                    ),
-                                                  ),
                                                   child: Ink(
                                                     decoration: BoxDecoration(
                                                       gradient: LinearGradient(
                                                         colors: gradientColors,
-                                                        begin: Alignment.topLeft,
-                                                        end: Alignment.bottomRight,
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end: Alignment
+                                                            .bottomRight,
                                                       ),
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                        screenWidth * 0.04,
-                                                      ),
+                                                            screenWidth * 0.04,
+                                                          ),
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color:
-                                                              skyBlue.withOpacity(0.3),
+                                                          color: skyBlue
+                                                              .withOpacity(0.3),
                                                           blurRadius: 25,
                                                           spreadRadius: 5,
-                                                          offset: const Offset(0, 10),
+                                                          offset: const Offset(
+                                                            0,
+                                                            10,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
                                                     child: Container(
-                                                      padding: EdgeInsets.symmetric(
-                                                        vertical: screenHeight * 0.018,
-                                                      ),
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            vertical:
+                                                                screenHeight *
+                                                                0.018,
+                                                          ),
                                                       child: Center(
                                                         child: _isLoading
                                                             ? SizedBox(
                                                                 height:
-                                                                    screenHeight * 0.025,
+                                                                    screenHeight *
+                                                                    0.025,
                                                                 width:
-                                                                    screenHeight * 0.025,
-                                                                child:
-                                                                    const CircularProgressIndicator(
-                                                                  strokeWidth: 2.5,
+                                                                    screenHeight *
+                                                                    0.025,
+                                                                child: const CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      2.5,
                                                                   valueColor:
                                                                       AlwaysStoppedAnimation<
-                                                                          Color>(
-                                                                    Colors.white,
-                                                                  ),
+                                                                        Color
+                                                                      >(
+                                                                        Colors
+                                                                            .white,
+                                                                      ),
                                                                 ),
                                                               )
                                                             : Row(
@@ -791,31 +844,33 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                                         .center,
                                                                 children: [
                                                                   Container(
-                                                                    padding:
-                                                                        EdgeInsets.all(
-                                                                      screenWidth * 0.01,
+                                                                    padding: EdgeInsets.all(
+                                                                      screenWidth *
+                                                                          0.01,
                                                                     ),
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      color: Colors.white
+                                                                    decoration: BoxDecoration(
+                                                                      color: Colors
+                                                                          .white
                                                                           .withOpacity(
                                                                             0.2,
                                                                           ),
-                                                                      shape:
-                                                                          BoxShape
-                                                                              .circle,
+                                                                      shape: BoxShape
+                                                                          .circle,
                                                                     ),
                                                                     child: Icon(
-                                                                      Icons.send_rounded,
+                                                                      Icons
+                                                                          .send_rounded,
                                                                       size:
                                                                           responsiveFontSize(
-                                                                        18,
-                                                                      ),
-                                                                      color: Colors.white,
+                                                                            18,
+                                                                          ),
+                                                                      color: Colors
+                                                                          .white,
                                                                     ),
                                                                   ),
                                                                   SizedBox(
-                                                                    width: screenWidth *
+                                                                    width:
+                                                                        screenWidth *
                                                                         0.02,
                                                                   ),
                                                                   Text(
@@ -823,13 +878,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                                     style: TextStyle(
                                                                       fontSize:
                                                                           responsiveFontSize(
-                                                                        16,
-                                                                      ),
+                                                                            16,
+                                                                          ),
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .w700,
-                                                                      color: Colors.white,
-                                                                      letterSpacing: 0.5,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      letterSpacing:
+                                                                          0.5,
                                                                     ),
                                                                   ),
                                                                 ],
@@ -845,16 +902,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                                         SizedBox(height: screenHeight * 0.02),
 
-                                        
                                         TweenAnimationBuilder(
-                                          tween: Tween<double>(begin: 0, end: 1),
-                                          duration: const Duration(milliseconds: 600),
+                                          tween: Tween<double>(
+                                            begin: 0,
+                                            end: 1,
+                                          ),
+                                          duration: const Duration(
+                                            milliseconds: 600,
+                                          ),
                                           curve: Curves.easeOut,
-                                          builder: (context, double value, child) {
-                                            return Opacity(
-                                              opacity: value,
-                                            );
-                                          },
+                                          builder:
+                                              (context, double value, child) {
+                                                return Opacity(opacity: value);
+                                              },
                                         ),
                                       ],
                                     ),
@@ -863,7 +923,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
                                 SizedBox(height: screenHeight * 0.02),
 
-                                
                                 TweenAnimationBuilder(
                                   tween: Tween<double>(begin: 0, end: 1),
                                   duration: const Duration(milliseconds: 600),
@@ -874,7 +933,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                       child: Column(
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Flexible(
                                                 child: Container(
@@ -884,7 +944,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                     gradient: LinearGradient(
                                                       colors: [
                                                         Colors.transparent,
-                                                        skyBlue.withOpacity(0.3),
+                                                        skyBlue.withOpacity(
+                                                          0.3,
+                                                        ),
                                                         Colors.transparent,
                                                       ],
                                                     ),
@@ -893,12 +955,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                               ),
                                               Padding(
                                                 padding: EdgeInsets.symmetric(
-                                                  horizontal: screenWidth * 0.03,
+                                                  horizontal:
+                                                      screenWidth * 0.03,
                                                 ),
                                                 child: Text(
                                                   "Powered by",
                                                   style: TextStyle(
-                                                    fontSize: responsiveFontSize(11),
+                                                    fontSize:
+                                                        responsiveFontSize(11),
                                                     color: subtitleColor,
                                                     fontWeight: FontWeight.w500,
                                                   ),
@@ -912,7 +976,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                     gradient: LinearGradient(
                                                       colors: [
                                                         Colors.transparent,
-                                                        skyBlue.withOpacity(0.3),
+                                                        skyBlue.withOpacity(
+                                                          0.3,
+                                                        ),
                                                         Colors.transparent,
                                                       ],
                                                     ),
@@ -928,7 +994,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                 TextSpan(
                                                   text: "Pioneer.",
                                                   style: TextStyle(
-                                                    fontSize: responsiveFontSize(13),
+                                                    fontSize:
+                                                        responsiveFontSize(13),
                                                     color: subtitleColor,
                                                     fontWeight: FontWeight.w400,
                                                   ),
@@ -936,7 +1003,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                 TextSpan(
                                                   text: "Tech",
                                                   style: TextStyle(
-                                                    fontSize: responsiveFontSize(13),
+                                                    fontSize:
+                                                        responsiveFontSize(13),
                                                     color: skyBlue,
                                                     fontWeight: FontWeight.w700,
                                                   ),

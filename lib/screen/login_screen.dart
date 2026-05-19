@@ -105,10 +105,7 @@ class _LoginScreenState extends State<LoginScreen>
           decoration: BoxDecoration(
             color: isDarkMode ? slate : pureWhite,
             borderRadius: BorderRadius.circular(screenWidth * 0.06),
-            border: Border.all(
-              color: Colors.red.withOpacity(0.3),
-              width: 2,
-            ),
+            border: Border.all(color: Colors.red.withOpacity(0.3), width: 2),
             boxShadow: [
               BoxShadow(
                 color: Colors.red.withOpacity(0.2),
@@ -219,10 +216,7 @@ class _LoginScreenState extends State<LoginScreen>
             decoration: BoxDecoration(
               color: isDarkMode ? slate : pureWhite,
               borderRadius: BorderRadius.circular(screenWidth * 0.06),
-              border: Border.all(
-                color: skyBlue.withOpacity(0.3),
-                width: 2,
-              ),
+              border: Border.all(color: skyBlue.withOpacity(0.3), width: 2),
               boxShadow: [
                 BoxShadow(
                   color: skyBlue.withOpacity(0.2),
@@ -366,10 +360,13 @@ class _LoginScreenState extends State<LoginScreen>
                               ScaleTransition(
                                 scale: _scaleAnimation,
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.all(responsiveWidth(0.02)),
+                                      padding: EdgeInsets.all(
+                                        responsiveWidth(0.02),
+                                      ),
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: gradientColors,
@@ -398,9 +395,10 @@ class _LoginScreenState extends State<LoginScreen>
                                               color: Colors.white.withOpacity(
                                                 0.2,
                                               ),
-                                              borderRadius: BorderRadius.circular(
-                                                responsiveWidth(0.02),
-                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    responsiveWidth(0.02),
+                                                  ),
                                             ),
                                             child: Image.asset(
                                               "assets/images/app_icon.png",
@@ -408,7 +406,9 @@ class _LoginScreenState extends State<LoginScreen>
                                               color: Colors.white,
                                             ),
                                           ),
-                                          SizedBox(width: responsiveWidth(0.02)),
+                                          SizedBox(
+                                            width: responsiveWidth(0.02),
+                                          ),
                                           Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -417,7 +417,9 @@ class _LoginScreenState extends State<LoginScreen>
                                               Text(
                                                 "PIONEER",
                                                 style: TextStyle(
-                                                  fontSize: responsiveFontSize(16),
+                                                  fontSize: responsiveFontSize(
+                                                    16,
+                                                  ),
                                                   fontWeight: FontWeight.w700,
                                                   color: Colors.white,
                                                   letterSpacing: 2,
@@ -434,7 +436,9 @@ class _LoginScreenState extends State<LoginScreen>
                                               Text(
                                                 "TECH",
                                                 style: TextStyle(
-                                                  fontSize: responsiveFontSize(16),
+                                                  fontSize: responsiveFontSize(
+                                                    16,
+                                                  ),
                                                   fontWeight: FontWeight.w900,
                                                   color: Colors.white,
                                                   letterSpacing: 2,
@@ -506,7 +510,10 @@ class _LoginScreenState extends State<LoginScreen>
                                 builder: (context, double value, child) {
                                   return Transform.translate(
                                     offset: Offset(0, 20 * (1 - value)),
-                                    child: Opacity(opacity: value, child: child),
+                                    child: Opacity(
+                                      opacity: value,
+                                      child: child,
+                                    ),
                                   );
                                 },
                                 child: Container(
@@ -610,7 +617,10 @@ class _LoginScreenState extends State<LoginScreen>
                                 builder: (context, double value, child) {
                                   return Transform.translate(
                                     offset: Offset(0, 20 * (1 - value)),
-                                    child: Opacity(opacity: value, child: child),
+                                    child: Opacity(
+                                      opacity: value,
+                                      child: child,
+                                    ),
                                   );
                                 },
                                 child: Container(
@@ -799,8 +809,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                                               if (response["success"] == true) {
                                                 final prefs =
-                                                    await SharedPreferences
-                                                        .getInstance();
+                                                    await SharedPreferences.getInstance();
                                                 await prefs.setString(
                                                   'userEmail',
                                                   _emailController.text.trim(),
@@ -811,10 +820,9 @@ class _LoginScreenState extends State<LoginScreen>
 
                                                 // 🔥 CLEAR OLD CACHE
                                                 final profileProvider =
-                                                    Provider.of<ProfileProvider>(
-                                                      context,
-                                                      listen: false,
-                                                    );
+                                                    Provider.of<
+                                                      ProfileProvider
+                                                    >(context, listen: false);
                                                 await profileProvider
                                                     .clearProfileCache();
 
@@ -829,24 +837,20 @@ class _LoginScreenState extends State<LoginScreen>
                                                     response["full_name"] ??
                                                     email.split('@')[0];
 
-                                                await CheckuserUtils
-                                                    .saveloginStatus(
-                                                      route: "/homeScreen",
-                                                      employeeId: "",
-                                                      userName: fullName,
-                                                      authToken: sid,
-                                                      cookies: cookies,
-                                                    );
+                                                await CheckuserUtils.saveloginStatus(
+                                                  route: "/homeScreen",
+                                                  employeeId: "",
+                                                  userName: fullName,
+                                                  authToken: sid,
+                                                  cookies: cookies,
+                                                );
 
                                                 // 🔥 Load profile
                                                 try {
                                                   final profileProvider =
                                                       Provider.of<
                                                         ProfileProvider
-                                                      >(
-                                                        context,
-                                                        listen: false,
-                                                      );
+                                                      >(context, listen: false);
                                                   await profileProvider
                                                       .loadProfile();
                                                 } catch (e) {
@@ -888,7 +892,43 @@ class _LoginScreenState extends State<LoginScreen>
                                                 String errorMsg =
                                                     response["message"] ??
                                                     "Login failed";
-                                                if (errorMsg.contains(
+
+                                                // ✅ NETWORK ERROR CHECK - YAHI PE FIX KARNA HAI
+                                                final errorMsgLower = errorMsg
+                                                    .toLowerCase();
+                                                final isNetworkError =
+                                                    errorMsgLower.contains(
+                                                      "socket",
+                                                    ) ||
+                                                    errorMsgLower.contains(
+                                                      "connection",
+                                                    ) ||
+                                                    errorMsgLower.contains(
+                                                      "network",
+                                                    ) ||
+                                                    errorMsgLower.contains(
+                                                      "internet",
+                                                    ) ||
+                                                    errorMsgLower.contains(
+                                                      "timeout",
+                                                    ) ||
+                                                    errorMsgLower.contains(
+                                                      "failed to fetch",
+                                                    ) ||
+                                                    errorMsgLower.contains(
+                                                      "host lookup",
+                                                    ) ||
+                                                    errorMsgLower.contains(
+                                                      "unable to connect",
+                                                    );
+
+                                                if (isNetworkError) {
+                                                  _showErrorDialog(
+                                                    context,
+                                                    "No Internet Connection",
+                                                    "Please check your network and try again.", // ✅ CLEAN MESSAGE
+                                                  );
+                                                } else if (errorMsg.contains(
                                                   "User not found",
                                                 )) {
                                                   _showErrorDialog(
@@ -907,20 +947,44 @@ class _LoginScreenState extends State<LoginScreen>
                                                 } else {
                                                   _showErrorDialog(
                                                     context,
-                                                    "Error",
-                                                    errorMsg,
-                                                  );
+                                                    "Login Failed",
+                                                    "Something went wrong. Please try again.",
+                                                  ); // ✅ GENERIC MESSAGE
                                                 }
                                               }
+                                              // ✅ BAAD MEIN
                                             } catch (e) {
                                               setState(
                                                 () => _isloading = false,
                                               );
-                                              print("❌ Exception: $e");
+
+                                              final rawMsg = e
+                                                  .toString()
+                                                  .toLowerCase();
+                                              final displayMsg =
+                                                  (rawMsg.contains("socket") ||
+                                                      rawMsg.contains(
+                                                        "connection",
+                                                      ) ||
+                                                      rawMsg.contains(
+                                                        "network",
+                                                      ) ||
+                                                      rawMsg.contains(
+                                                        "internet",
+                                                      ) ||
+                                                      rawMsg.contains(
+                                                        "host lookup",
+                                                      ) ||
+                                                      rawMsg.contains(
+                                                        "failed host",
+                                                      ))
+                                                  ? "No internet connection. Please check your network."
+                                                  : "Something went wrong. Please try again.";
+
                                               _showErrorDialog(
                                                 context,
-                                                "Network Error",
-                                                "Please check your internet connection\nError: $e",
+                                                "Error",
+                                                displayMsg, // ✅ clean message
                                               );
                                             }
                                           },
@@ -986,13 +1050,17 @@ class _LoginScreenState extends State<LoginScreen>
                                                     ),
                                                   ),
                                                   SizedBox(
-                                                    width: responsiveWidth(0.02),
+                                                    width: responsiveWidth(
+                                                      0.02,
+                                                    ),
                                                   ),
                                                   Text(
                                                     "Login",
                                                     style: TextStyle(
                                                       fontSize:
-                                                          responsiveFontSize(18),
+                                                          responsiveFontSize(
+                                                            18,
+                                                          ),
                                                       fontWeight:
                                                           FontWeight.w700,
                                                       color: Colors.white,

@@ -13,12 +13,12 @@ class Profilescreen extends StatefulWidget {
   State<Profilescreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<Profilescreen> 
+class _ProfileScreenState extends State<Profilescreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   Map<String, dynamic>? _profileData;
   bool _isLoading = true;
   String? _errorMessage;
@@ -38,25 +38,28 @@ class _ProfileScreenState extends State<Profilescreen>
         ? [charcoal, slate, const Color(0xFF1E1E2E)]
         : [skyBlue, mediumSky, deepSky];
   }
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
-    
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
     _loadProfileData();
   }
 
@@ -68,50 +71,86 @@ class _ProfileScreenState extends State<Profilescreen>
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      
-      final userEmail = prefs.getString('userEmail') ?? prefs.getString('email');
-      
+
+      final userEmail =
+          prefs.getString('userEmail') ?? prefs.getString('email');
+
       if (userEmail != null && userEmail.isNotEmpty) {
         final result = await ProfileService.getCompleteProfile(userEmail);
-        
+
         if (mounted) {
-          if (result['success'] == true) {
-            setState(() {
-              _profileData = result['data'];
-              _isLoading = false;
-            });
-            _animationController.forward();
-          } else {
-            setState(() {
-              _errorMessage = result['message'];
-              _isLoading = false;
-            });
-          }
-        }
+  if (result['success'] == true) {
+    setState(() {
+      _profileData = result['data'];
+      _isLoading = false;
+    });
+    _animationController.forward();
+  } else {
+    // Get error message from result
+    String errorMessage = result['message'] ?? "Failed to load profile. Please try again.";
+    
+    // Check if it's a network-related error
+    final msgLower = errorMessage.toLowerCase();
+    if (msgLower.contains("network") ||
+        msgLower.contains("connection") ||
+        msgLower.contains("internet") ||
+        msgLower.contains("timeout") ||
+        msgLower.contains("socket")) {
+      errorMessage = "No internet connection. Please check your network.";
+    }
+    
+    setState(() {
+      _errorMessage = errorMessage;
+      _isLoading = false;
+    });
+  }
+}
       } else {
         setState(() {
           _errorMessage = "User email not found. Please login again.";
           _isLoading = false;
         });
       }
+      // ✅ BAAD MEIN
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString();
-          _isLoading = false;
-        });
-      }
-    }
+  if (mounted) {
+    final rawMsg = e.toString().toLowerCase();
+    
+    // Added more keywords that http package might return
+    final isNetworkError = rawMsg.contains("socket") ||
+        rawMsg.contains("connection") ||
+        rawMsg.contains("network") ||
+        rawMsg.contains("internet") ||
+        rawMsg.contains("host lookup") ||
+        rawMsg.contains("failed host") ||
+        rawMsg.contains("failed to fetch") ||
+        rawMsg.contains("network request failed") ||
+        rawMsg.contains("timeout") ||
+        rawMsg.contains("unable to connect") ||
+        rawMsg.contains("connection refused") ||
+        rawMsg.contains("no route to host") ||
+        rawMsg.contains("xmlhttprequest error");
+    
+    final displayMsg = isNetworkError 
+        ? "No internet connection. Please check your network."
+        : "Failed to load profile. Please try again.";
+    
+    setState(() {
+      _errorMessage = displayMsg;
+      _isLoading = false;
+    });
+  }
+}
   }
 
   String? _getProfileImageUrl() {
     if (_profileData == null) return null;
-    
-    if (_profileData!['full_image_url'] != null && 
+
+    if (_profileData!['full_image_url'] != null &&
         _profileData!['full_image_url'].toString().isNotEmpty) {
       return _profileData!['full_image_url'].toString();
     }
-    
+
     return null;
   }
 
@@ -218,7 +257,7 @@ class _ProfileScreenState extends State<Profilescreen>
     final height = MediaQuery.of(context).size.height;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final gradientColors = _getHeaderGradientColors(isDarkMode);
-    
+
     final backgroundColor = isDarkMode ? charcoal : offWhite;
     final cardColor = isDarkMode ? slate : pureWhite;
 
@@ -228,7 +267,9 @@ class _ProfileScreenState extends State<Profilescreen>
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
-        systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
@@ -334,9 +375,16 @@ class _ProfileScreenState extends State<Profilescreen>
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
-                      child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: width * 0.05),
+                      child: Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                        size: width * 0.05,
+                      ),
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -349,9 +397,16 @@ class _ProfileScreenState extends State<Profilescreen>
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1,
+                            ),
                           ),
-                          child: Icon(Icons.refresh_rounded, color: Colors.white, size: width * 0.05),
+                          child: Icon(
+                            Icons.refresh_rounded,
+                            color: Colors.white,
+                            size: width * 0.05,
+                          ),
                         ),
                         onPressed: _refreshProfile,
                       ),
@@ -371,7 +426,12 @@ class _ProfileScreenState extends State<Profilescreen>
                           opacity: _fadeAnimation,
                           child: SlideTransition(
                             position: _slideAnimation,
-                            child: _buildProfileContent(width, isDarkMode, cardColor, gradientColors),
+                            child: _buildProfileContent(
+                              width,
+                              isDarkMode,
+                              cardColor,
+                              gradientColors,
+                            ),
                           ),
                         ),
                     ]),
@@ -385,7 +445,12 @@ class _ProfileScreenState extends State<Profilescreen>
     );
   }
 
-  Widget _buildProfileContent(double width, bool isDarkMode, Color cardColor, List<Color> gradientColors) {
+  Widget _buildProfileContent(
+    double width,
+    bool isDarkMode,
+    Color cardColor,
+    List<Color> gradientColors,
+  ) {
     return Column(
       children: [
         Container(
@@ -467,19 +532,25 @@ class _ProfileScreenState extends State<Profilescreen>
                       child: Container(
                         padding: EdgeInsets.all(width * 0.015),
                         decoration: BoxDecoration(
-                          color: ProfileService.getStatusColor(_profileData!['status'] ?? 'active'),
+                          color: ProfileService.getStatusColor(
+                            _profileData!['status'] ?? 'active',
+                          ),
                           shape: BoxShape.circle,
                           border: Border.all(color: cardColor, width: 2.5),
                           boxShadow: [
                             BoxShadow(
-                              color: ProfileService.getStatusColor(_profileData!['status'] ?? 'active').withOpacity(0.3),
+                              color: ProfileService.getStatusColor(
+                                _profileData!['status'] ?? 'active',
+                              ).withOpacity(0.3),
                               blurRadius: 8,
                               spreadRadius: 1,
                             ),
                           ],
                         ),
                         child: Icon(
-                          ProfileService.getStatusIcon(_profileData!['status'] ?? 'active'),
+                          ProfileService.getStatusIcon(
+                            _profileData!['status'] ?? 'active',
+                          ),
                           size: width * 0.035,
                           color: Colors.white,
                         ),
@@ -488,9 +559,9 @@ class _ProfileScreenState extends State<Profilescreen>
                   ],
                 ),
               ),
-              
+
               SizedBox(height: width * 0.04),
-              
+
               // Name and Designation in a row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -527,11 +598,17 @@ class _ProfileScreenState extends State<Profilescreen>
                   ),
                   if (_getEmployeeId() != 'N/A')
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: width * 0.03, vertical: width * 0.015),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: width * 0.03,
+                        vertical: width * 0.015,
+                      ),
                       decoration: BoxDecoration(
                         color: deepSky.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(width * 0.06),
-                        border: Border.all(color: deepSky.withOpacity(0.3), width: 1),
+                        border: Border.all(
+                          color: deepSky.withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
                       child: Text(
                         _getEmployeeId(),
@@ -544,19 +621,26 @@ class _ProfileScreenState extends State<Profilescreen>
                     ),
                 ],
               ),
-              
+
               SizedBox(height: width * 0.03),
-              
+
               // Status and Email in a horizontal row
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: width * 0.03, vertical: width * 0.01),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: width * 0.03,
+                      vertical: width * 0.01,
+                    ),
                     decoration: BoxDecoration(
-                      color: ProfileService.getStatusColor(_profileData!['status'] ?? 'active').withOpacity(0.1),
+                      color: ProfileService.getStatusColor(
+                        _profileData!['status'] ?? 'active',
+                      ).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(width * 0.04),
                       border: Border.all(
-                        color: ProfileService.getStatusColor(_profileData!['status'] ?? 'active'),
+                        color: ProfileService.getStatusColor(
+                          _profileData!['status'] ?? 'active',
+                        ),
                         width: 1,
                       ),
                     ),
@@ -564,16 +648,28 @@ class _ProfileScreenState extends State<Profilescreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          ProfileService.getStatusIcon(_profileData!['status'] ?? 'active'),
+                          ProfileService.getStatusIcon(
+                            _profileData!['status'] ?? 'active',
+                          ),
                           size: width * 0.03,
-                          color: ProfileService.getStatusColor(_profileData!['status'] ?? 'active'),
+                          color: ProfileService.getStatusColor(
+                            _profileData!['status'] ?? 'active',
+                          ),
                         ),
                         SizedBox(width: width * 0.01),
                         Text(
-                          _getStatusText().replaceAll('🟢', '').replaceAll('🔴', '').replaceAll('🟠', '').replaceAll('⚫', '').replaceAll('⚪', '').trim(),
+                          _getStatusText()
+                              .replaceAll('🟢', '')
+                              .replaceAll('🔴', '')
+                              .replaceAll('🟠', '')
+                              .replaceAll('⚫', '')
+                              .replaceAll('⚪', '')
+                              .trim(),
                           style: TextStyle(
                             fontSize: width * 0.03,
-                            color: ProfileService.getStatusColor(_profileData!['status'] ?? 'active'),
+                            color: ProfileService.getStatusColor(
+                              _profileData!['status'] ?? 'active',
+                            ),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -583,20 +679,34 @@ class _ProfileScreenState extends State<Profilescreen>
                   SizedBox(width: width * 0.02),
                   Expanded(
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: width * 0.03, vertical: width * 0.01),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: width * 0.03,
+                        vertical: width * 0.01,
+                      ),
                       decoration: BoxDecoration(
                         color: skyBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(width * 0.04),
-                        border: Border.all(color: skyBlue.withOpacity(0.3), width: 1),
+                        border: Border.all(
+                          color: skyBlue.withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.email_rounded, size: width * 0.03, color: skyBlue),
+                          Icon(
+                            Icons.email_rounded,
+                            size: width * 0.03,
+                            color: skyBlue,
+                          ),
                           SizedBox(width: width * 0.02),
                           Expanded(
                             child: Text(
                               _profileData!['email'] ?? 'N/A',
-                              style: TextStyle(fontSize: width * 0.03, color: skyBlue, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: width * 0.03,
+                                color: skyBlue,
+                                fontWeight: FontWeight.w600,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -609,11 +719,16 @@ class _ProfileScreenState extends State<Profilescreen>
             ],
           ),
         ),
-        
+
         SizedBox(height: width * 0.04),
-        
+
         // Work Information Section
-        _buildSectionTitle('Work Information', Icons.work_rounded, skyBlue, width),
+        _buildSectionTitle(
+          'Work Information',
+          Icons.work_rounded,
+          skyBlue,
+          width,
+        ),
         SizedBox(height: width * 0.03),
         _buildInfoCard(
           label: 'Department',
@@ -660,8 +775,7 @@ class _ProfileScreenState extends State<Profilescreen>
           isDarkMode: isDarkMode,
         ),
         // ✅ NEW: Contract End Date card
-        if (_getContractEndDate() != 'N/A')
-          SizedBox(height: width * 0.02),
+        if (_getContractEndDate() != 'N/A') SizedBox(height: width * 0.02),
         if (_getContractEndDate() != 'N/A')
           _buildInfoCard(
             label: 'Contract End Date',
@@ -671,11 +785,16 @@ class _ProfileScreenState extends State<Profilescreen>
             width: width,
             isDarkMode: isDarkMode,
           ),
-        
+
         SizedBox(height: width * 0.04),
-        
+
         // Personal Information
-        _buildSectionTitle('Personal Information', Icons.person_rounded, deepSky, width),
+        _buildSectionTitle(
+          'Personal Information',
+          Icons.person_rounded,
+          deepSky,
+          width,
+        ),
         SizedBox(height: width * 0.03),
         _buildInfoCard(
           label: 'Gender',
@@ -688,7 +807,8 @@ class _ProfileScreenState extends State<Profilescreen>
         SizedBox(height: width * 0.02),
         _buildInfoCard(
           label: 'Date of Birth',
-          value: '${ProfileService.formatDate(_profileData!['birth_date'])} (${ProfileService.getAge(_profileData!['birth_date'])} years)',
+          value:
+              '${ProfileService.formatDate(_profileData!['birth_date'])} (${ProfileService.getAge(_profileData!['birth_date'])} years)',
           icon: Icons.cake_rounded,
           color: deepSky,
           width: width,
@@ -703,15 +823,21 @@ class _ProfileScreenState extends State<Profilescreen>
           width: width,
           isDarkMode: isDarkMode,
         ),
-        
+
         SizedBox(height: width * 0.04),
-        
+
         // Contact Information
-        _buildSectionTitle('Contact Information', Icons.contact_phone_rounded, mediumSky, width),
+        _buildSectionTitle(
+          'Contact Information',
+          Icons.contact_phone_rounded,
+          mediumSky,
+          width,
+        ),
         SizedBox(height: width * 0.03),
         _buildInfoCard(
           label: 'Mobile Number',
-          value: _profileData!['phone'] ?? _profileData!['cell_number'] ?? 'N/A',
+          value:
+              _profileData!['phone'] ?? _profileData!['cell_number'] ?? 'N/A',
           icon: Icons.phone_android_rounded,
           color: Colors.green,
           width: width,
@@ -721,7 +847,7 @@ class _ProfileScreenState extends State<Profilescreen>
           SizedBox(height: width * 0.02),
           _buildInfoCard(
             label: 'Emergency Contact',
-            value: _getEmergencyContactPerson() != 'N/A' 
+            value: _getEmergencyContactPerson() != 'N/A'
                 ? '$_getEmergencyContactPerson() - $_getEmergencyContact()'
                 : _getEmergencyContact(),
             icon: Icons.emergency_rounded,
@@ -730,7 +856,7 @@ class _ProfileScreenState extends State<Profilescreen>
             isDarkMode: isDarkMode,
           ),
         ],
-        
+
         SizedBox(height: width * 0.04),
       ],
     );
@@ -775,9 +901,22 @@ class _ProfileScreenState extends State<Profilescreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(fontSize: width * 0.03, color: Colors.grey[600], fontWeight: FontWeight.w600)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: width * 0.03,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 SizedBox(height: width * 0.01),
-                Text(value, style: TextStyle(fontSize: width * 0.04, fontWeight: FontWeight.w700)),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: width * 0.04,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ),
@@ -786,10 +925,21 @@ class _ProfileScreenState extends State<Profilescreen>
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, Color color, double width) {
+  Widget _buildSectionTitle(
+    String title,
+    IconData icon,
+    Color color,
+    double width,
+  ) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: width * 0.02, vertical: width * 0.01),
-      decoration: BoxDecoration(color: skyBlue.withOpacity(0.05), borderRadius: BorderRadius.circular(width * 0.04)),
+      padding: EdgeInsets.symmetric(
+        horizontal: width * 0.02,
+        vertical: width * 0.01,
+      ),
+      decoration: BoxDecoration(
+        color: skyBlue.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(width * 0.04),
+      ),
       child: Row(
         children: [
           Container(
@@ -798,13 +948,24 @@ class _ProfileScreenState extends State<Profilescreen>
               gradient: LinearGradient(colors: [skyBlue, deepSky]),
               borderRadius: BorderRadius.circular(width * 0.02),
               boxShadow: [
-                BoxShadow(color: skyBlue.withOpacity(0.2), blurRadius: 10, spreadRadius: 1),
+                BoxShadow(
+                  color: skyBlue.withOpacity(0.2),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
               ],
             ),
             child: Icon(icon, size: width * 0.04, color: Colors.white),
           ),
           SizedBox(width: width * 0.02),
-          Text(title, style: TextStyle(fontSize: width * 0.045, fontWeight: FontWeight.w800, color: skyBlue)),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: width * 0.045,
+              fontWeight: FontWeight.w800,
+              color: skyBlue,
+            ),
+          ),
         ],
       ),
     );
@@ -866,29 +1027,58 @@ class _ProfileScreenState extends State<Profilescreen>
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.error_outline_rounded, size: width * 0.1, color: Colors.white),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  size: width * 0.1,
+                  color: Colors.white,
+                ),
               ),
               SizedBox(height: width * 0.05),
-              Text('Oops!', style: TextStyle(fontSize: width * 0.06, fontWeight: FontWeight.bold, color: Colors.red)),
+              Text(
+                'Oops!',
+                style: TextStyle(
+                  fontSize: width * 0.06,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
               SizedBox(height: width * 0.02),
-              Text(_errorMessage ?? 'Something went wrong', textAlign: TextAlign.center),
+              Text(
+                _errorMessage ?? 'Something went wrong',
+                textAlign: TextAlign.center,
+              ),
               SizedBox(height: width * 0.05),
               Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: _refreshProfile,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: width * 0.03),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: width * 0.05,
+                      vertical: width * 0.03,
+                    ),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [skyBlue, deepSky]),
+                      gradient: const LinearGradient(
+                        colors: [skyBlue, deepSky],
+                      ),
                       borderRadius: BorderRadius.circular(width * 0.03),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.refresh_rounded, color: Colors.white, size: width * 0.05),
+                        Icon(
+                          Icons.refresh_rounded,
+                          color: Colors.white,
+                          size: width * 0.05,
+                        ),
                         SizedBox(width: width * 0.02),
-                        Text('Try Again', style: TextStyle(color: Colors.white, fontSize: width * 0.04)),
+                        Text(
+                          'Try Again',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: width * 0.04,
+                          ),
+                        ),
                       ],
                     ),
                   ),

@@ -36,14 +36,12 @@ class _EmployeeAdvanceScreenState extends State<EmployeeAdvanceScreen>
 
   
   static const Color skyBlue = Color(0xFF87CEEB); 
-  static const Color lightSky = Color(0xFFE0F2FE); 
   static const Color mediumSky = Color(0xFF7EC8E0); 
   static const Color deepSky = Color(0xFF00A5E0); 
   static const Color offWhite = Color(0xFFF8FAFC);
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color charcoal = Color(0xFF1E293B);
   static const Color slate = Color(0xFF334155);
-  static const Color steel = Color(0xFF475569);
 
   @override
   void initState() {
@@ -250,233 +248,318 @@ class _EmployeeAdvanceScreenState extends State<EmployeeAdvanceScreen>
   }
 
   Future<bool> _showConfirmationDialog(double amount, String purpose) async {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
+  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  
+  final isSmallScreen = screenWidth < 600;
+  final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
-    return await showDialog<bool>(
-          context: context,
-          barrierDismissible: true,
-          barrierColor: Colors.black.withOpacity(0.5),
-          builder: (context) => Dialog(
-            insetPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(screenWidth * 0.05),
-            ),
-            child: Container(
-              padding: EdgeInsets.all(screenWidth * 0.06),
-              decoration: BoxDecoration(
-                color: isDarkMode ? slate : pureWhite,
-                borderRadius: BorderRadius.circular(screenWidth * 0.05),
-                border: Border.all(color: skyBlue.withOpacity(0.3), width: 1.5),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(screenWidth * 0.025),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: skyBlue.withOpacity(0.1),
-                        ),
-                        child: Icon(
-                          Icons.info_outline_rounded,
-                          color: skyBlue,
-                          size: screenWidth * 0.06,
+  return await showDialog<bool>(
+    context: context,
+    barrierDismissible: true,
+    barrierColor: Colors.black.withOpacity(0.5),
+    builder: (context) => Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: screenWidth * (isSmallScreen ? 0.04 : 0.08),
+        vertical: screenHeight * 0.02,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(screenWidth * (isSmallScreen ? 0.04 : 0.03)),
+      ),
+      child: Container(
+        width: isTablet ? screenWidth * 0.6 : screenWidth * 0.9,
+        constraints: BoxConstraints(
+          maxHeight: screenHeight * 0.9, // Maximum 90% of screen height
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(screenWidth * (isSmallScreen ? 0.04 : 0.03)),
+          child: SingleChildScrollView(  // ✅ SCROLLABLE - Fixes overflow
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.all(screenWidth * (isSmallScreen ? 0.05 : 0.04)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(screenWidth * 0.02),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: skyBlue.withOpacity(0.1),
+                      ),
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        color: skyBlue,
+                        size: screenWidth * (isSmallScreen ? 0.06 : 0.05),
+                      ),
+                    ),
+                    SizedBox(width: screenWidth * 0.04),
+                    Expanded(
+                      child: Text(
+                        'Confirm Your Request',
+                        style: TextStyle(
+                          fontSize: screenWidth * (isSmallScreen ? 0.045 : 0.04),
+                          fontWeight: FontWeight.w700,
+                          color: isDarkMode ? Colors.white : Colors.grey.shade900,
                         ),
                       ),
-                      SizedBox(width: screenWidth * 0.04),
-                      Expanded(
-                        child: Text(
-                          'Confirm Your Request',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.05,
-                            fontWeight: FontWeight.w700,
-                            color: isDarkMode
-                                ? Colors.white
-                                : Colors.grey.shade900,
-                          ),
-                        ),
+                    ),
+                  ],
+                ),
+                
+                SizedBox(height: screenHeight * 0.02),
+                
+                // Description
+                Text(
+                  'Please review the details below before submitting:',
+                  style: TextStyle(
+                    fontSize: screenWidth * (isSmallScreen ? 0.032 : 0.03),
+                    color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                  ),
+                ),
+                
+                SizedBox(height: screenHeight * 0.015),
+                
+                // Details Container
+                Container(
+                  padding: EdgeInsets.all(screenWidth * 0.04),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? slate.withOpacity(0.3) : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                    border: Border.all(color: skyBlue.withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildConfirmationRow(
+                        context,
+                        'Amount:',
+                        '﷼ ${amount.toStringAsFixed(2)}',
+                        Icons.monetization_on_rounded,
+                        skyBlue,
+                      ),
+                      _buildDivider(screenWidth, isDarkMode),
+                      _buildConfirmationRow(
+                        context,
+                        'Purpose:',
+                        purpose,
+                        Icons.description_rounded,
+                        deepSky,
+                      ),
+                      _buildDivider(screenWidth, isDarkMode),
+                      _buildConfirmationRow(
+                        context,
+                        'Account:',
+                        _selectedAccount ?? '',
+                        Icons.account_balance_rounded,
+                        mediumSky,
+                      ),
+                      _buildDivider(screenWidth, isDarkMode),
+                      _buildConfirmationRow(
+                        context,
+                        'Payment Mode:',
+                        _selectedPaymentMode ?? '',
+                        Icons.payment_rounded,
+                        Colors.green,
+                      ),
+                      _buildDivider(screenWidth, isDarkMode),
+                      _buildConfirmationRow(
+                        context,
+                        'Repayment:',
+                        _repayFromSalary ? 'Salary Deduction' : 'Separate Repayment',
+                        Icons.account_balance_wallet_rounded,
+                        Colors.amber.shade700,
                       ),
                     ],
                   ),
-                  SizedBox(height: screenHeight * 0.025),
-                  Text(
-                    'Please review the details below before submitting:',
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.035,
-                      color: isDarkMode
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade700,
-                    ),
+                ),
+                
+                SizedBox(height: screenHeight * 0.02),
+                
+                // Info Box
+                Container(
+                  padding: EdgeInsets.all(screenWidth * 0.03),
+                  decoration: BoxDecoration(
+                    color: skyBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                    border: Border.all(color: skyBlue.withOpacity(0.3)),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Container(
-                    padding: EdgeInsets.all(screenWidth * 0.04),
-                    decoration: BoxDecoration(
-                      color: isDarkMode
-                          ? slate.withOpacity(0.3)
-                          : Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                      border: Border.all(color: skyBlue.withOpacity(0.2)),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildConfirmationRow(
-                          context,
-                          'Amount:',
-                          '﷼ ${amount.toStringAsFixed(2)}', // Changed to Riyal symbol
-                          Icons.monetization_on_rounded, // Changed icon
-                          skyBlue,
-                        ),
-                        _buildDivider(screenWidth, isDarkMode),
-                        _buildConfirmationRow(
-                          context,
-                          'Purpose:',
-                          purpose,
-                          Icons.description_rounded,
-                          deepSky,
-                        ),
-                        _buildDivider(screenWidth, isDarkMode),
-                        _buildConfirmationRow(
-                          context,
-                          'Account:',
-                          _selectedAccount ?? '',
-                          Icons.account_balance_rounded,
-                          mediumSky,
-                        ),
-                        _buildDivider(screenWidth, isDarkMode),
-                        _buildConfirmationRow(
-                          context,
-                          'Payment Mode:',
-                          _selectedPaymentMode ?? '',
-                          Icons.payment_rounded,
-                          Colors.green,
-                        ),
-                        _buildDivider(screenWidth, isDarkMode),
-                        _buildConfirmationRow(
-                          context,
-                          'Repayment:',
-                          _repayFromSalary
-                              ? 'Salary Deduction'
-                              : 'Separate Repayment',
-                          Icons.account_balance_wallet_rounded,
-                          Colors.amber.shade700,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.025),
-                  Container(
-                    padding: EdgeInsets.all(screenWidth * 0.03),
-                    decoration: BoxDecoration(
-                      color: skyBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(screenWidth * 0.02),
-                      border: Border.all(color: skyBlue.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_rounded,
-                          color: skyBlue,
-                          size: screenWidth * 0.04,
-                        ),
-                        SizedBox(width: screenWidth * 0.03),
-                        Expanded(
-                          child: Text(
-                            'Once submitted, this request cannot be modified. Your manager will review and respond within 24-48 hours.',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.032,
-                              color: isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey.shade800,
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.035),
-                  Row(
+                  child: Row(
                     children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              vertical: screenHeight * 0.018,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                screenWidth * 0.03,
-                              ),
-                            ),
-                            side: BorderSide(
-                              color: skyBlue.withOpacity(0.3),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Text(
-                            'CANCEL',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.038,
-                              fontWeight: FontWeight.w600,
-                              color: isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
+                      Icon(
+                        Icons.info_rounded,
+                        color: skyBlue,
+                        size: screenWidth * (isSmallScreen ? 0.045 : 0.04),
                       ),
                       SizedBox(width: screenWidth * 0.03),
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: skyBlue,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              vertical: screenHeight * 0.018,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                screenWidth * 0.03,
-                              ),
-                            ),
-                            elevation: 2,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.check_circle,
-                                size: screenWidth * 0.045,
-                              ),
-                              SizedBox(width: screenWidth * 0.02),
-                              Text(
-                                'CONFIRM',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.038,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
+                        child: Text(
+                          'Once submitted, this request cannot be modified. Your manager will review and respond within 24-48 hours.',
+                          style: TextStyle(
+                            fontSize: screenWidth * (isSmallScreen ? 0.03 : 0.028),
+                            color: isDarkMode ? Colors.white70 : Colors.grey.shade800,
+                            height: 1.4,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                
+                SizedBox(height: screenHeight * 0.025),
+                
+                // ✅ FIXED: Responsive Buttons
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth < 400) {
+                      return Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: screenHeight * 0.016,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                ),
+                                side: BorderSide(
+                                  color: skyBlue.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Text(
+                                'CANCEL',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.038,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDarkMode ? Colors.white70 : Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.012),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: skyBlue,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: screenHeight * 0.016,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: screenWidth * 0.045,
+                                  ),
+                                  SizedBox(width: screenWidth * 0.02),
+                                  Text(
+                                    'CONFIRM',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.038,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                vertical: screenHeight * 0.018,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              side: BorderSide(
+                                color: skyBlue.withOpacity(0.3),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Text(
+                              'CANCEL',
+                              style: TextStyle(
+                                fontSize: screenWidth * (isSmallScreen ? 0.035 : 0.032),
+                                fontWeight: FontWeight.w600,
+                                color: isDarkMode ? Colors.white70 : Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: screenWidth * 0.03),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: skyBlue,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                vertical: screenHeight * 0.018,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  size: screenWidth * (isSmallScreen ? 0.045 : 0.04),
+                                ),
+                                SizedBox(width: screenWidth * 0.02),
+                                Flexible(
+                                  child: Text(
+                                    'CONFIRM',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * (isSmallScreen ? 0.035 : 0.032),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                
+                // Add extra bottom padding for safe area
+                SizedBox(height: screenHeight * 0.01),
+              ],
             ),
           ),
-        ) ??
-        false;
-  }
+        ),
+      ),
+    ),
+  ) ?? false;
+}
 
   Widget _buildConfirmationRow(
     BuildContext context,

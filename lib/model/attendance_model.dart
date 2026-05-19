@@ -10,59 +10,45 @@ enum AttendanceStatus {
 
 class AttendanceLog {
   final DateTime date;
-  String? checkIn;
-  String? checkOut;
+
+  // Store as actual DateTime (already converted to local) for accuracy
+  DateTime? checkInTime;
+  DateTime? checkOutTime;
   Duration totalHours;
   AttendanceStatus status;
-  
+
+  // Legacy string fields — kept for backward compat but not used for display
+  String? checkIn;
+  String? checkOut;
+
   AttendanceLog({
     required this.date,
     this.checkIn,
     this.checkOut,
+    this.checkInTime,
+    this.checkOutTime,
     this.totalHours = Duration.zero,
     this.status = AttendanceStatus.absent,
   });
 
-  // ✅ FORCE SAUDI TIME (UTC+3)
+  /// Returns formatted punch-in time in device local timezone.
+  /// Uses [checkInTime] (DateTime) if available, falls back to [checkIn] string.
   String get formattedCheckIn {
-    if (checkIn == null) return "--:--";
-    try {
-      final parts = checkIn!.split(':');
-      if (parts.length == 2) {
-        final hour = int.parse(parts[0]);
-        final minute = int.parse(parts[1]);
-        
-        final nowUtc = DateTime.now().toUtc();
-        final saudiNow = nowUtc.add(const Duration(hours: 3));
-        final time = DateTime(saudiNow.year, saudiNow.month, saudiNow.day, hour, minute);
-        
-        return DateFormat('hh:mm a').format(time);
-      }
-      return checkIn!;
-    } catch (_) {
-      return checkIn!;
+    if (checkInTime != null) {
+      return DateFormat('hh:mm a').format(checkInTime!);
     }
+    if (checkIn == null) return "--:--";
+    return checkIn!;
   }
 
-  // ✅ FORCE SAUDI TIME (UTC+3)
+  /// Returns formatted punch-out time in device local timezone.
+  /// Uses [checkOutTime] (DateTime) if available, falls back to [checkOut] string.
   String get formattedCheckOut {
-    if (checkOut == null) return "--:--";
-    try {
-      final parts = checkOut!.split(':');
-      if (parts.length == 2) {
-        final hour = int.parse(parts[0]);
-        final minute = int.parse(parts[1]);
-        
-        final nowUtc = DateTime.now().toUtc();
-        final saudiNow = nowUtc.add(const Duration(hours: 3));
-        final time = DateTime(saudiNow.year, saudiNow.month, saudiNow.day, hour, minute);
-        
-        return DateFormat('hh:mm a').format(time);
-      }
-      return checkOut!;
-    } catch (_) {
-      return checkOut!;
+    if (checkOutTime != null) {
+      return DateFormat('hh:mm a').format(checkOutTime!);
     }
+    if (checkOut == null) return "--:--";
+    return checkOut!;
   }
 
   String get formattedTotalHours {

@@ -36,9 +36,8 @@ class AttendanceProvider extends ChangeNotifier {
       );
 
       _processAttendanceData(rawData);
-      
-      await _loadTodayAttendance(employeeId);
 
+      await _loadTodayAttendance(employeeId);
     } catch (e) {
       _errorMessage = "Failed to load attendance data";
     } finally {
@@ -54,14 +53,26 @@ class AttendanceProvider extends ChangeNotifier {
       try {
         final timeStr = item["time"]?.toString();
         final logType = item["log_type"]?.toString();
-        
+
         if (timeStr == null || logType == null) continue;
-        final localTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr, true);
-        final dateKey = DateTime(localTime.year, localTime.month, localTime.day);
-        
+
+        // ✅ KEY FIX:
+        // parse(timeStr, true) → treats string as UTC
+        // .toLocal()           → converts to device local timezone (Saudi = UTC+3)
+        // Previously .toLocal() was missing, so UTC time was used as-is → 3 hrs behind
+        final utcTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr, true);
+        final localTime = utcTime.toLocal(); // ✅ Now correctly Saudi time (UTC+3)
+
+        // Group by local date (not UTC date — avoids day boundary issues)
+        final dateKey = DateTime(
+          localTime.year,
+          localTime.month,
+          localTime.day,
+        );
+
         dateGroupedLogs.putIfAbsent(dateKey, () => []);
         dateGroupedLogs[dateKey]!.add({
-          'time': localTime,
+          'time': localTime, // local DateTime stored
           'type': logType,
         });
       } catch (_) {
@@ -70,27 +81,31 @@ class AttendanceProvider extends ChangeNotifier {
     }
 
     dateGroupedLogs.forEach((date, logs) {
-      logs.sort((a, b) => a['time'].compareTo(b['time']));
-      
+      logs.sort((a, b) => (a['time'] as DateTime).compareTo(b['time'] as DateTime));
+
       DateTime? firstIn;
       DateTime? lastOut;
-      
+
       for (final log in logs) {
         if (log['type'] == 'IN' && firstIn == null) {
-          firstIn = log['time'];
+          firstIn = log['time'] as DateTime;
         } else if (log['type'] == 'OUT') {
-          lastOut = log['time'];
+          lastOut = log['time'] as DateTime;
         }
       }
 
-      final totalHours = (firstIn != null && lastOut != null) 
-          ? lastOut.difference(firstIn) 
+      final totalHours = (firstIn != null && lastOut != null)
+          ? lastOut.difference(firstIn)
           : Duration.zero;
 
       final status = _determineStatus(firstIn, lastOut, totalHours);
 
       _attendanceMap[date] = AttendanceLog(
         date: date,
+        // ✅ Pass actual DateTime objects — model uses these for display
+        checkInTime: firstIn,
+        checkOutTime: lastOut,
+        // Legacy string fields — kept for safety
         checkIn: firstIn != null ? DateFormat("hh:mm a").format(firstIn) : null,
         checkOut: lastOut != null ? DateFormat("hh:mm a").format(lastOut) : null,
         totalHours: totalHours,
@@ -114,18 +129,21 @@ class AttendanceProvider extends ChangeNotifier {
       if (todayData.isNotEmpty) {
         _processAttendanceData(todayData);
       }
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
-  AttendanceStatus _determineStatus(DateTime? checkIn, DateTime? checkOut, Duration totalHours) {
+  AttendanceStatus _determineStatus(
+    DateTime? checkIn,
+    DateTime? checkOut,
+    Duration totalHours,
+  ) {
     if (checkIn == null && checkOut == null) {
       return AttendanceStatus.absent;
     } else if (checkIn != null && checkOut == null) {
       return AttendanceStatus.checkedIn;
     } else if (checkOut != null) {
       final hours = totalHours.inHours + (totalHours.inMinutes % 60) / 60;
-      
+
       if (hours >= 9.0) {
         return AttendanceStatus.overtime;
       } else if (hours >= 8.0) {
@@ -145,28 +163,34 @@ class AttendanceProvider extends ChangeNotifier {
 
   List<AttendanceLog> getMonthlyLogs(DateTime month) {
     final List<AttendanceLog> logs = [];
-    
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final isCurrentMonth = month.year == today.year && month.month == today.month;
+    final isCurrentMonth =
+        month.year == today.year && month.month == today.month;
     final lastDay = DateTime(month.year, month.month + 1, 0);
     final int maxDay = isCurrentMonth ? today.day : lastDay.day;
 
     for (int day = 1; day <= maxDay; day++) {
       final date = DateTime(month.year, month.month, day);
-      
+
       AttendanceLog? log;
       for (final key in _attendanceMap.keys) {
-        if (key.year == date.year && key.month == date.month && key.day == date.day) {
+        if (key.year == date.year &&
+            key.month == date.month &&
+            key.day == date.day) {
           log = _attendanceMap[key];
           break;
         }
       }
-      
-      logs.add(log ?? AttendanceLog(
-        date: date,
-        status: AttendanceStatus.absent,
-      ));
+
+      logs.add(
+        log ??
+            AttendanceLog(
+              date: date,
+              status: AttendanceStatus.absent,
+            ),
+      );
     }
 
     return logs.reversed.toList();
@@ -174,7 +198,9 @@ class AttendanceProvider extends ChangeNotifier {
 
   bool hasAttendanceForDate(DateTime date) {
     for (final key in _attendanceMap.keys) {
-      if (key.year == date.year && key.month == date.month && key.day == date.day) {
+      if (key.year == date.year &&
+          key.month == date.month &&
+          key.day == date.day) {
         return true;
       }
     }
