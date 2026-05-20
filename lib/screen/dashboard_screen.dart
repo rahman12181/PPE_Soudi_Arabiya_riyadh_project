@@ -129,8 +129,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       'route': '/travelRequest',
     },
     {
-      'title': 'Attendance',
-      'subtitle': 'Mark attendance',
+      'title': 'Excuses',
+      'subtitle': 'your excuses',
       'icon': Icons.fingerprint_rounded,
       'bgPattern': Icons.schedule_rounded,
       'type': 'Attendance_request',

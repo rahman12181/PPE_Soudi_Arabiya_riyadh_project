@@ -15,7 +15,8 @@ class CheckinService {
     required Position currentPosition,
   }) async {
     try {
-      bool inside = await _geofenceService.isWithinAnyGeofence(currentPosition);
+      bool inside =
+          await _geofenceService.isWithinAnyGeofence(currentPosition);
 
       if (!inside) {
         return {
@@ -35,9 +36,14 @@ class CheckinService {
         };
       }
 
-      // Device local time  — hardcoded +3 i changed
-      final localTime = DateTime.now();
-      final formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(localTime);
+      // ✅ FIX: Use device local time directly.
+      // DateTime.now() on a Saudi device already returns Saudi local time (UTC+3).
+      // ERPNext expects local time — so this is correct as-is.
+      // Previously there was a comment about "+3 hardcoded" — that is WRONG
+      // and unnecessary. The device clock is the source of truth.
+      final localNow = DateTime.now();
+      final formattedTime =
+          DateFormat('yyyy-MM-dd HH:mm:ss').format(localNow);
 
       Map<String, dynamic> requestBody = {
         "employee": employeeId,
@@ -50,12 +56,14 @@ class CheckinService {
       print("========== SENDING PUNCH REQUEST ==========");
       print("Employee: $employeeId");
       print("Log Type: $logType");
-      print("Time: $formattedTime");
-      print("Location: ${currentPosition.latitude}, ${currentPosition.longitude}");
+      print("Time (local): $formattedTime");
+      print(
+          "Location: ${currentPosition.latitude}, ${currentPosition.longitude}");
       print("===========================================");
 
       final apiResponse = await AuthService.client.post(
-        Uri.parse("https://ppecon.erpnext.com/api/resource/Employee%20Checkin"),
+        Uri.parse(
+            "https://ppecon.erpnext.com/api/resource/Employee%20Checkin"),
         headers: {
           "Content-Type": "application/json",
           "Cookie": AuthService.cookies.join("; "),
@@ -70,7 +78,8 @@ class CheckinService {
 
       Map<String, dynamic> responseData = {};
       String message = '';
-      bool success = apiResponse.statusCode == 200 || apiResponse.statusCode == 201;
+      bool success = apiResponse.statusCode == 200 ||
+          apiResponse.statusCode == 201;
 
       try {
         responseData = jsonDecode(apiResponse.body);
@@ -80,7 +89,8 @@ class CheckinService {
             if (messages.isNotEmpty) {
               var msgObj = jsonDecode(messages[0]);
               message = msgObj['message'] ?? '';
-              message = message.replaceAll('✅', '').replaceAll('❌', '').trim();
+              message =
+                  message.replaceAll('✅', '').replaceAll('❌', '').trim();
             }
           } catch (_) {}
         }

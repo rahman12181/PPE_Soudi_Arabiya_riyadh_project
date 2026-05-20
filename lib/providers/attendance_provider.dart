@@ -9,6 +9,15 @@ class AttendanceProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // ✅ ERP time format — used to parse "2026-05-20 08:29:36" strings
+  static final DateFormat _erpFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+
+  /// Parse ERP time string as-is — no UTC/local conversion.
+  /// ERP stores Riyadh time; we display exactly what ERP has.
+  static DateTime _parseErpTime(String timeStr) {
+    return _erpFormat.parse(timeStr, false);
+  }
+
   Map<DateTime, AttendanceLog> get attendanceMap => _attendanceMap;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -36,7 +45,6 @@ class AttendanceProvider extends ChangeNotifier {
       );
 
       _processAttendanceData(rawData);
-
       await _loadTodayAttendance(employeeId);
     } catch (e) {
       _errorMessage = "Failed to load attendance data";
@@ -56,23 +64,18 @@ class AttendanceProvider extends ChangeNotifier {
 
         if (timeStr == null || logType == null) continue;
 
-        // ✅ KEY FIX:
-        // parse(timeStr, true) → treats string as UTC
-        // .toLocal()           → converts to device local timezone (Saudi = UTC+3)
-        // Previously .toLocal() was missing, so UTC time was used as-is → 3 hrs behind
-        final utcTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr, true);
-        final localTime = utcTime.toLocal(); // ✅ Now correctly Saudi time (UTC+3)
+        // ✅ KEY FIX: Parse ERP time as-is — no timezone conversion.
+        // ERP returns "2026-05-20 08:29:36" in Asia/Riyadh.
+        // We display EXACTLY this value on all devices regardless of device timezone.
+        // So India device shows 08:29, Saudi device shows 08:29 — always correct.
+        final erpTime = _parseErpTime(timeStr);
 
-        // Group by local date (not UTC date — avoids day boundary issues)
-        final dateKey = DateTime(
-          localTime.year,
-          localTime.month,
-          localTime.day,
-        );
+        // Group by the date part from ERP time (not device local date)
+        final dateKey = DateTime(erpTime.year, erpTime.month, erpTime.day);
 
         dateGroupedLogs.putIfAbsent(dateKey, () => []);
         dateGroupedLogs[dateKey]!.add({
-          'time': localTime, // local DateTime stored
+          'time': erpTime,
           'type': logType,
         });
       } catch (_) {
@@ -81,7 +84,8 @@ class AttendanceProvider extends ChangeNotifier {
     }
 
     dateGroupedLogs.forEach((date, logs) {
-      logs.sort((a, b) => (a['time'] as DateTime).compareTo(b['time'] as DateTime));
+      logs.sort((a, b) =>
+          (a['time'] as DateTime).compareTo(b['time'] as DateTime));
 
       DateTime? firstIn;
       DateTime? lastOut;
@@ -102,12 +106,14 @@ class AttendanceProvider extends ChangeNotifier {
 
       _attendanceMap[date] = AttendanceLog(
         date: date,
-        // ✅ Pass actual DateTime objects — model uses these for display
         checkInTime: firstIn,
         checkOutTime: lastOut,
-        // Legacy string fields — kept for safety
-        checkIn: firstIn != null ? DateFormat("hh:mm a").format(firstIn) : null,
-        checkOut: lastOut != null ? DateFormat("hh:mm a").format(lastOut) : null,
+        checkIn: firstIn != null
+            ? DateFormat("hh:mm a").format(firstIn)
+            : null,
+        checkOut: lastOut != null
+            ? DateFormat("hh:mm a").format(lastOut)
+            : null,
         totalHours: totalHours,
         status: status,
       );
@@ -143,14 +149,9 @@ class AttendanceProvider extends ChangeNotifier {
       return AttendanceStatus.checkedIn;
     } else if (checkOut != null) {
       final hours = totalHours.inHours + (totalHours.inMinutes % 60) / 60;
-
-      if (hours >= 9.0) {
-        return AttendanceStatus.overtime;
-      } else if (hours >= 8.0) {
-        return AttendanceStatus.completed;
-      } else {
-        return AttendanceStatus.shortage;
-      }
+      if (hours >= 9.0) return AttendanceStatus.overtime;
+      if (hours >= 8.0) return AttendanceStatus.completed;
+      return AttendanceStatus.shortage;
     }
     return AttendanceStatus.absent;
   }

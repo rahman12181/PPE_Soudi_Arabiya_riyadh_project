@@ -19,14 +19,14 @@ class LeaveRequestService {
 
   static const List<String> ticketOptions = [
     "Not Required",
-    "Provided By Company",
+    "Provide By Company",
     "Self (Employee)",
   ];
 
   static const List<String> exitReentryOptions = [
     "Not Required",
-    "Single",
-    "Multiple",
+    "Provide By Company",
+    "Self (Employee)",
   ];
 
   static String mapLeaveType(String? value) {

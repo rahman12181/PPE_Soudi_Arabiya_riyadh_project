@@ -64,9 +64,7 @@ class _AttendanceRequestScreenState extends State<AttendanceRequestScreen>
 
   final List<String> shifts = [
     "Office",
-    "Morning",
-    "Evening",
-    "Night",
+    "operation",
   ];
 
   final Map<String, IconData> reasonIcons = {
@@ -707,7 +705,7 @@ void _showErrorSnackBar(String message) {
           title: FadeTransition(
             opacity: _fadeAnimation,
             child: Text(
-              "Attendance Request",
+              "Excuse & Request",
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: responsiveFontSize(18),

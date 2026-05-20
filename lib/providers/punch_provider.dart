@@ -14,15 +14,14 @@ class PunchProvider extends ChangeNotifier {
   DateTime? get punchOutTime => _punchOutTime;
   bool get isLoaded => _isLoaded;
 
-  static const Duration riyadhOffset = Duration(hours: 3);
+  // ✅ RULE: All times stored and displayed in ERP's Asia/Riyadh timezone (UTC+3).
+  // We never convert to/from device local time.
+  // setPunchIn/Out: called with DateTime.now() at punch time (device must be Saudi time)
+  // syncTodayFromApi: ERP times stored as-is (already Riyadh time)
+  // Display: DateFormat('hh:mm a').format(punchInTime!) — shows ERP time correctly
 
-  DateTime toRiyadhTime(DateTime utcTime) =>
-      utcTime.toUtc().add(riyadhOffset);
+  static final DateFormat _storageFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
-  DateTime get todayInRiyadh =>
-      DateTime.now().toUtc().add(riyadhOffset);
-
-  // Set employee ID – must be called after login
   void setEmployeeId(String id) {
     if (_employeeId == id) return;
     _employeeId = id;
@@ -31,14 +30,14 @@ class PunchProvider extends ChangeNotifier {
   }
 
   String _todayKey() {
-    final today = todayInRiyadh;
-    final dateStr = DateFormat('yyyy-MM-dd').format(today);
+    // ✅ Use Saudi/Riyadh date for key — add UTC+3 offset to UTC time
+    // This ensures the key is always the correct Saudi date regardless of device timezone
+    final todayRiyadh = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final dateStr = DateFormat('yyyy-MM-dd').format(todayRiyadh);
     if (_employeeId != null && _employeeId!.isNotEmpty) {
       return "${_employeeId}_$dateStr";
-    } else {
-      // Fallback – should not happen after login
-      return dateStr;
     }
+    return dateStr;
   }
 
   Future<void> loadDailyPunches() async {
@@ -56,14 +55,15 @@ class PunchProvider extends ChangeNotifier {
       final inStr = prefs.getString("IN_$key");
       final outStr = prefs.getString("OUT_$key");
 
+      // ✅ Parse stored strings as plain datetime — no timezone conversion
       _punchInTime = (inStr != null && inStr.isNotEmpty)
-          ? DateTime.parse(inStr).toUtc()
+          ? _storageFormat.parse(inStr, false)
           : null;
       _punchOutTime = (outStr != null && outStr.isNotEmpty)
-          ? DateTime.parse(outStr).toUtc()
+          ? _storageFormat.parse(outStr, false)
           : null;
 
-      debugPrint("📱 Local loaded for $_employeeId - IN: $_punchInTime, OUT: $_punchOutTime");
+      debugPrint("📱 Loaded for $_employeeId - IN: $_punchInTime, OUT: $_punchOutTime");
     } catch (e) {
       debugPrint("Punch load error: $e");
       _punchInTime = null;
@@ -76,7 +76,6 @@ class PunchProvider extends ChangeNotifier {
   Future<void> fetchAndSyncTodayFromERP({
     required String employeeId,
   }) async {
-    // Ensure local employee ID matches
     if (_employeeId != employeeId) {
       setEmployeeId(employeeId);
     } else if (_employeeId == null) {
@@ -84,33 +83,27 @@ class PunchProvider extends ChangeNotifier {
     }
 
     try {
-      debugPrint("🌐 Fetching today's attendance from ERP for employee: $employeeId");
+      debugPrint("🌐 Fetching today from ERP for: $employeeId");
       final attendanceService = AttendanceService();
       final todayData = await attendanceService.getTodayAttendance(
         employeeId: employeeId,
       );
+
+      // ✅ These are already ERP (Riyadh) times — no conversion needed
       final DateTime? punchIn = todayData['punchIn'];
       final DateTime? punchOut = todayData['punchOut'];
 
-      debugPrint("🌐 ERP Data - IN: $punchIn, OUT: $punchOut");
+      debugPrint("🌐 ERP times - IN: $punchIn, OUT: $punchOut");
 
       bool needsUpdate = false;
-      if (punchIn != null && _punchInTime == null) {
-        needsUpdate = true;
-        debugPrint("📝 ERP has punchIn but local doesn't - updating");
-      }
-      if (punchOut != null && _punchOutTime == null) {
-        needsUpdate = true;
-        debugPrint("📝 ERP has punchOut but local doesn't - updating");
-      }
+      if (punchIn != null && _punchInTime == null) needsUpdate = true;
+      if (punchOut != null && _punchOutTime == null) needsUpdate = true;
+
       if (needsUpdate || (punchIn != null && punchOut != null)) {
-        await syncTodayFromApi(
-          punchIn: punchIn,
-          punchOut: punchOut,
-        );
-        debugPrint("✅ Successfully synced from ERP to local");
+        await syncTodayFromApi(punchIn: punchIn, punchOut: punchOut);
+        debugPrint("✅ Synced from ERP");
       } else {
-        debugPrint("📱 Local data is already up to date");
+        debugPrint("📱 Local data already up to date");
       }
     } catch (e) {
       debugPrint("❌ Failed to sync from ERP: $e");
@@ -125,73 +118,71 @@ class PunchProvider extends ChangeNotifier {
     final key = _todayKey();
 
     if (punchIn != null) {
-      await prefs.setString(
-        "IN_$key",
-        punchIn.toUtc().toIso8601String(),
-      );
+      // ✅ Store ERP time as-is using our format string
+      final str = _storageFormat.format(punchIn);
+      await prefs.setString("IN_$key", str);
       _punchInTime = punchIn;
     }
     if (punchOut != null) {
-      await prefs.setString(
-        "OUT_$key",
-        punchOut.toUtc().toIso8601String(),
-      );
+      final str = _storageFormat.format(punchOut);
+      await prefs.setString("OUT_$key", str);
       _punchOutTime = punchOut;
     }
     _isLoaded = true;
     notifyListeners();
   }
 
-  Future<void> setPunchIn(DateTime utcTime) async {
+  Future<void> setPunchIn(DateTime deviceTime) async {
     if (_employeeId == null) return;
     final prefs = await SharedPreferences.getInstance();
     final key = _todayKey();
-    final utc = utcTime.toUtc();
 
-    await prefs.setString("IN_$key", utc.toIso8601String());
+    // ✅ Convert device time to Riyadh time for storage and display
+    // This handles case where device might not be in Saudi timezone
+    final riyadhTime = deviceTime.toUtc().add(const Duration(hours: 3));
+    final str = _storageFormat.format(riyadhTime);
+
+    await prefs.setString("IN_$key", str);
     await prefs.remove("OUT_$key");
 
-    _punchInTime = utc;
+    _punchInTime = riyadhTime;
     _punchOutTime = null;
     notifyListeners();
   }
 
-  Future<void> setPunchOut(DateTime utcTime) async {
+  Future<void> setPunchOut(DateTime deviceTime) async {
     if (_employeeId == null) return;
     final prefs = await SharedPreferences.getInstance();
     final key = _todayKey();
-    final utc = utcTime.toUtc();
 
-    await prefs.setString("OUT_$key", utc.toIso8601String());
-    _punchOutTime = utc;
+    // ✅ Convert device time to Riyadh time for storage and display
+    final riyadhTime = deviceTime.toUtc().add(const Duration(hours: 3));
+    final str = _storageFormat.format(riyadhTime);
+
+    await prefs.setString("OUT_$key", str);
+    _punchOutTime = riyadhTime;
     notifyListeners();
   }
 
-  DateTime? get punchInTimeRiyadh =>
-      _punchInTime?.add(riyadhOffset);
-  DateTime? get punchOutTimeRiyadh =>
-      _punchOutTime?.add(riyadhOffset);
-
   String totalHours() {
     if (_punchInTime == null) return "00:00";
-    final end = _punchOutTime ?? DateTime.now().toUtc();
+    final end = _punchOutTime ??
+        DateTime.now().toUtc().add(const Duration(hours: 3));
     final diff = end.difference(_punchInTime!);
     return "${diff.inHours.toString().padLeft(2, '0')}:${(diff.inMinutes % 60).toString().padLeft(2, '0')}";
   }
 
   double progressValue() {
     if (_punchInTime == null) return 0;
-    final end = _punchOutTime ?? DateTime.now().toUtc();
-    return (end.difference(_punchInTime!).inSeconds /
-            (12 * 60 * 60))
+    final end = _punchOutTime ??
+        DateTime.now().toUtc().add(const Duration(hours: 3));
+    return (end.difference(_punchInTime!).inSeconds / (12 * 60 * 60))
         .clamp(0.0, 1.0);
   }
 
   bool canPunchInToday() => _punchInTime == null;
-  bool canPunchOutToday() =>
-      _punchInTime != null && _punchOutTime == null;
-  bool isTodayCompleted() =>
-      _punchInTime != null && _punchOutTime != null;
+  bool canPunchOutToday() => _punchInTime != null && _punchOutTime == null;
+  bool isTodayCompleted() => _punchInTime != null && _punchOutTime != null;
 
   Future<void> clearTodayPunches() async {
     if (_employeeId == null) return;
@@ -216,7 +207,8 @@ class PunchProvider extends ChangeNotifier {
 
   Duration getTotalDuration() {
     if (_punchInTime == null) return Duration.zero;
-    final end = _punchOutTime ?? DateTime.now().toUtc();
+    final end = _punchOutTime ??
+        DateTime.now().toUtc().add(const Duration(hours: 3));
     return end.difference(_punchInTime!);
   }
 }

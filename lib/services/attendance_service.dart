@@ -6,6 +6,19 @@ class AttendanceService {
   static const String baseUrl =
       "https://ppecon.erpnext.com/api/resource/Employee%20Checkin";
 
+  // ✅ ERP stores and returns times in Asia/Riyadh timezone (UTC+3).
+  // We NEVER convert to device local time — we always display ERP time as-is.
+  // This ensures the same time shows on any device regardless of where the user is.
+  static final DateFormat _erpFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+
+  /// Parse ERP time string as a "fixed" datetime with no timezone conversion.
+  /// We use UTC flag=false so Dart treats it as a plain local-style datetime.
+  /// We never call .toLocal() or .toUtc() on these values.
+  static DateTime _parseErpTime(String timeStr) {
+    // parse with isUtc=false → stored as-is, no offset applied
+    return _erpFormat.parse(timeStr, false);
+  }
+
   Future<List<dynamic>> fetchLogs({
     required String employeeId,
     required DateTime start,
@@ -32,8 +45,7 @@ class AttendanceService {
       });
 
       if (response.statusCode != 200) {
-        throw Exception(
-            "Failed to fetch attendance: ${response.statusCode}");
+        throw Exception("Failed to fetch attendance: ${response.statusCode}");
       }
 
       final jsonData = jsonDecode(response.body);
@@ -65,12 +77,14 @@ class AttendanceService {
 
       for (final log in logs) {
         final type = log["log_type"];
-        final time = DateTime.parse(log["time"]);
+
+        // ✅ Parse ERP time as-is — no timezone conversion
+        // ERP returns "2026-05-20 08:29:36" (Riyadh time) → display exactly that
+        final time = _parseErpTime(log["time"]);
 
         if (type == "IN" && punchIn == null) {
           punchIn = time;
         }
-
         if (type == "OUT") {
           punchOut = time;
         }
