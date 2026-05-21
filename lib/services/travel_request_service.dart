@@ -21,20 +21,18 @@ class TravelRequestService {
         return _getDefaultFundingTypes();
       }
 
-      const url = "$_baseUrl/api/resource/Travel Funding Type?fields=[\"name\"]&limit=100";
-      
+      const url =
+          "$_baseUrl/api/resource/Travel Funding Type?fields=[\"name\"]&limit=100";
+
       final response = await http.get(
         Uri.parse(url),
-        headers: {
-          "Cookie": cookies.join("; "),
-          "Accept": "application/json",
-        },
+        headers: {"Cookie": cookies.join("; "), "Accept": "application/json"},
       );
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List data = decoded["data"] ?? [];
-        
+
         if (data.isNotEmpty) {
           return data.map((item) {
             final name = item["name"].toString();
@@ -47,7 +45,7 @@ class TravelRequestService {
           }).toList();
         }
       }
-      
+
       return _getDefaultFundingTypes();
     } catch (e) {
       return _getDefaultFundingTypes();
@@ -60,23 +58,21 @@ class TravelRequestService {
       final cookies = prefs.getStringList("cookies");
 
       if (cookies == null || cookies.isEmpty) {
-        return _getDefaultPurposeTypes(); 
+        return _getDefaultPurposeTypes();
       }
 
-      const url = "$_baseUrl/api/resource/Purpose of Travel?fields=[\"name\"]&limit=100";
-      
+      const url =
+          "$_baseUrl/api/resource/Purpose of Travel?fields=[\"name\"]&limit=100";
+
       final response = await http.get(
         Uri.parse(url),
-        headers: {
-          "Cookie": cookies.join("; "),
-          "Accept": "application/json",
-        },
+        headers: {"Cookie": cookies.join("; "), "Accept": "application/json"},
       );
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List data = decoded["data"] ?? [];
-        
+
         if (data.isNotEmpty) {
           return data.map((item) {
             final name = item["name"].toString();
@@ -89,10 +85,10 @@ class TravelRequestService {
           }).toList();
         }
       }
-      
+
       return _getDefaultPurposeTypes();
     } catch (e) {
-      return _getDefaultPurposeTypes(); 
+      return _getDefaultPurposeTypes();
     }
   }
 
@@ -140,7 +136,7 @@ class TravelRequestService {
               "travel_to": to,
               "mode_of_travel": mode,
               "departure_date": departureDate,
-            }
+            },
           ],
         }),
       );
@@ -219,7 +215,7 @@ class TravelRequestService {
               "travel_to": returnTo,
               "mode_of_travel": returnMode,
               "departure_date": returnDate,
-            }
+            },
           ],
         }),
       );
@@ -228,7 +224,8 @@ class TravelRequestService {
         return "Two-Way Travel Request Submitted Successfully";
       }
 
-      throw "Submit Failed: ${response.body}";
+      // ✅ BAAD MEIN
+      throw "Failed to submit request. Please try again."; // ✅ clean
     } catch (e) {
       throw e.toString();
     }
@@ -238,113 +235,112 @@ class TravelRequestService {
   // GET MY TRAVEL REQUESTS
   // =====================================================
   static Future<List<Map<String, dynamic>>> getMyTravelRequests(
-    String employeeId) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final cookies = prefs.getStringList("cookies");
+    String employeeId,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cookies = prefs.getStringList("cookies");
 
-    if (cookies == null || cookies.isEmpty) {
-      throw "Please login again";
-    }
+      if (cookies == null || cookies.isEmpty) {
+        throw "Please login again";
+      }
 
-    // First get list of travel request names
-    final listUrl =
-        "$_baseUrl/api/resource/Travel%20Request"
-        "?fields=[\"name\"]"
-        "&filters=[[\"employee\",\"=\",\"$employeeId\"]]"
-        "&order_by=creation desc"
-        "&limit=100";
+      // First get list of travel request names
+      final listUrl =
+          "$_baseUrl/api/resource/Travel%20Request"
+          "?fields=[\"name\"]"
+          "&filters=[[\"employee\",\"=\",\"$employeeId\"]]"
+          "&order_by=creation desc"
+          "&limit=100";
 
-    final listResponse = await http.get(
-      Uri.parse(listUrl),
-      headers: {
-        "Cookie": cookies.join("; "),
-        "Accept": "application/json",
-      },
-    );
-
-    if (listResponse.statusCode != 200) {
-      throw "ERP Error: ${listResponse.body}";
-    }
-
-    final listDecoded = jsonDecode(listResponse.body);
-    final List listData = listDecoded["data"] ?? [];
-
-    List<Map<String, dynamic>> travelRequests = [];
-
-    // Fetch each document individually to get FULL data including itinerary child table
-    for (var item in listData) {
-      final requestName = item["name"];
-      
-      final detailUrl = "$_baseUrl/api/resource/Travel%20Request/$requestName";
-      
-      final detailResponse = await http.get(
-        Uri.parse(detailUrl),
-        headers: {
-          "Cookie": cookies.join("; "),
-          "Accept": "application/json",
-        },
+      final listResponse = await http.get(
+        Uri.parse(listUrl),
+        headers: {"Cookie": cookies.join("; "), "Accept": "application/json"},
       );
 
-      if (detailResponse.statusCode == 200) {
-        final detailDecoded = jsonDecode(detailResponse.body);
-        final Map<String, dynamic> fullData = detailDecoded["data"] ?? {};
+      if (listResponse.statusCode != 200) {
+        // ✅ BAAD MEIN
+        throw "Failed to load travel requests. Please try again."; // ✅ clean
+      }
 
-        final status = _getDisplayStatus(
-          fullData["workflow_state"],
-          fullData["docstatus"],
+      final listDecoded = jsonDecode(listResponse.body);
+      final List listData = listDecoded["data"] ?? [];
+
+      List<Map<String, dynamic>> travelRequests = [];
+
+      // Fetch each document individually to get FULL data including itinerary child table
+      for (var item in listData) {
+        final requestName = item["name"];
+
+        final detailUrl =
+            "$_baseUrl/api/resource/Travel%20Request/$requestName";
+
+        final detailResponse = await http.get(
+          Uri.parse(detailUrl),
+          headers: {"Cookie": cookies.join("; "), "Accept": "application/json"},
         );
 
-        // Parse itinerary from the full data
-        List<Map<String, dynamic>> itineraryList = [];
-        
-        if (fullData["itinerary"] != null) {
-          final itinerary = fullData["itinerary"];
-          
-          if (itinerary is List) {
-            for (var leg in itinerary) {
-              if (leg is Map<String, dynamic>) {
-                itineraryList.add(leg);
+        if (detailResponse.statusCode == 200) {
+          final detailDecoded = jsonDecode(detailResponse.body);
+          final Map<String, dynamic> fullData = detailDecoded["data"] ?? {};
+
+          final status = _getDisplayStatus(
+            fullData["workflow_state"],
+            fullData["docstatus"],
+          );
+
+          // Parse itinerary from the full data
+          List<Map<String, dynamic>> itineraryList = [];
+
+          if (fullData["itinerary"] != null) {
+            final itinerary = fullData["itinerary"];
+
+            if (itinerary is List) {
+              for (var leg in itinerary) {
+                if (leg is Map<String, dynamic>) {
+                  itineraryList.add(leg);
+                }
               }
             }
           }
+
+          travelRequests.add({
+            "type": "travel",
+            "data": fullData,
+            "itinerary": itineraryList,
+            "itinerary_list": itineraryList,
+            "id": fullData["name"] ?? "",
+            "title": fullData["travel_type"] != null
+                ? "Travel: ${fullData["travel_type"]}"
+                : "",
+            "subtitle": fullData["purpose_of_travel"] ?? "",
+            "date": fullData["creation"] ?? "",
+            "status": status,
+            "color": _getStatusColor(
+              fullData["workflow_state"],
+              fullData["docstatus"],
+            ),
+            "icon": Icons.flight_takeoff,
+            "purpose_of_travel": fullData["purpose_of_travel"] ?? "",
+            "travel_type": fullData["travel_type"] ?? "",
+            "travel_funding": fullData["travel_funding"] ?? "",
+            "created_on": fullData["creation"] ?? "",
+            "workflow_state": fullData["workflow_state"] ?? "",
+            "docstatus": fullData["docstatus"] ?? 0,
+            "employee_name": fullData["employee_name"] ?? "",
+            "employee": fullData["employee"] ?? "",
+            "name": fullData["name"] ?? "",
+            "posting_date": fullData["posting_date"] ?? "",
+            "creation": fullData["creation"] ?? "",
+          });
         }
-
-        travelRequests.add({
-          "type": "travel",
-          "data": fullData,
-          "itinerary": itineraryList,
-          "itinerary_list": itineraryList,
-          "id": fullData["name"] ?? "",
-          "title": fullData["travel_type"] != null ? "Travel: ${fullData["travel_type"]}" : "",
-          "subtitle": fullData["purpose_of_travel"] ?? "",
-          "date": fullData["creation"] ?? "",
-          "status": status,
-          "color": _getStatusColor(
-            fullData["workflow_state"],
-            fullData["docstatus"],
-          ),
-          "icon": Icons.flight_takeoff,
-          "purpose_of_travel": fullData["purpose_of_travel"] ?? "",
-          "travel_type": fullData["travel_type"] ?? "",
-          "travel_funding": fullData["travel_funding"] ?? "",
-          "created_on": fullData["creation"] ?? "",
-          "workflow_state": fullData["workflow_state"] ?? "",
-          "docstatus": fullData["docstatus"] ?? 0,
-          "employee_name": fullData["employee_name"] ?? "",
-          "employee": fullData["employee"] ?? "",
-          "name": fullData["name"] ?? "",
-          "posting_date": fullData["posting_date"] ?? "",
-          "creation": fullData["creation"] ?? "",
-        });
       }
-    }
 
-    return travelRequests;
-  } catch (e) {
-    rethrow;
+      return travelRequests;
+    } catch (e) {
+      rethrow;
+    }
   }
-}
 
   // =====================================================
   // HELPER METHODS
@@ -355,19 +351,19 @@ class TravelRequestService {
         'value': 'Fully Sponsored',
         'label': 'Fully Sponsored',
         'icon': Icons.account_balance_wallet,
-        'color': Colors.purple
+        'color': Colors.purple,
       },
       {
         'value': 'Self Sponsored',
         'label': 'Self Sponsored',
         'icon': Icons.person,
-        'color': Colors.orange
+        'color': Colors.orange,
       },
       {
         'value': 'Partially Sponsored',
         'label': 'Partially Sponsored',
         'icon': Icons.account_balance,
-        'color': Colors.teal
+        'color': Colors.teal,
       },
     ];
   }
@@ -378,31 +374,31 @@ class TravelRequestService {
         'value': 'Business',
         'label': 'Business Meeting',
         'icon': Icons.business,
-        'color': Colors.blue
+        'color': Colors.blue,
       },
       {
         'value': 'Conference',
         'label': 'Conference',
         'icon': Icons.groups,
-        'color': Colors.purple
+        'color': Colors.purple,
       },
       {
         'value': 'Training',
         'label': 'Training',
         'icon': Icons.school,
-        'color': Colors.green
+        'color': Colors.green,
       },
       {
         'value': 'Project',
         'label': 'Project Work',
         'icon': Icons.work,
-        'color': Colors.orange
+        'color': Colors.orange,
       },
       {
         'value': 'Personal',
         'label': 'Personal',
         'icon': Icons.person,
-        'color': Colors.red
+        'color': Colors.red,
       },
     ];
   }
@@ -427,7 +423,8 @@ class TravelRequestService {
     final name = purposeName.toLowerCase();
     if (name.contains('business')) return Icons.business;
     if (name.contains('conference')) return Icons.groups;
-    if (name.contains('training') || name.contains('school')) return Icons.school;
+    if (name.contains('training') || name.contains('school'))
+      return Icons.school;
     if (name.contains('project')) return Icons.work;
     if (name.contains('personal')) return Icons.person;
     if (name.contains('meeting')) return Icons.people;

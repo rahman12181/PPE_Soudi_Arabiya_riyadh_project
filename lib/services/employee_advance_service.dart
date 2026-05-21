@@ -96,7 +96,7 @@ class EmployeeAdvanceService {
         'error': response.body,
       };
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      return {'success': false, 'message': 'Request failed. Please try again.'};
     }
   }
 

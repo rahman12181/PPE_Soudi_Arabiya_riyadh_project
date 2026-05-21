@@ -534,14 +534,9 @@ class _ForgotpasswordScreenState extends State<ForgotpasswordScreen>
                                                     ),
                                               ),
                                               validator: (value) {
-                                                if (value == null ||
+                                                if (value == null || 
                                                     value.isEmpty) {
-                                                  return "Email is required";
-                                                }
-                                                if (!RegExp(
-                                                  r'^[a-zA-Z0-9._%+-]+@ppecon\.com$',
-                                                ).hasMatch(value)) {
-                                                  return "Please use your @ppecon.com email";
+                                                  return "Email required";
                                                 }
                                                 return null;
                                               },

@@ -1,5 +1,3 @@
-
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -34,19 +32,16 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
   String purpose = "";
   String mode = "Flight";
 
-  
   List<Map<String, dynamic>> fundingTypes = [];
   List<Map<String, dynamic>> purposeTypes = [];
 
-  
-  static const Color skyBlue = Color(0xFF87CEEB);  
-  static const Color deepSky = Color(0xFF00A5E0);    
+  static const Color skyBlue = Color(0xFF87CEEB);
+  static const Color deepSky = Color(0xFF00A5E0);
   static const Color offWhite = Color(0xFFF8FAFC);
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color charcoal = Color(0xFF1E293B);
   static const Color slate = Color(0xFF334155);
 
-  
   final List<Map<String, dynamic>> travelTypes = [
     {
       'value': 'International',
@@ -69,12 +64,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
       'icon': Icons.airplanemode_active,
       'color': skyBlue,
     },
-    {
-      'value': 'Train',
-      'label': 'Train',
-      'icon': Icons.train,
-      'color': deepSky,
-    },
+    {'value': 'Train', 'label': 'Train', 'icon': Icons.train, 'color': deepSky},
     {
       'value': 'Bus',
       'label': 'Bus',
@@ -213,7 +203,6 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
       ),
     );
 
-    
     if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -247,7 +236,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
         mode: mode,
         departureDate: dateCtrl.text.trim(),
         description: descCtrl.text.trim(),
-        isTwoWay: false, 
+        isTwoWay: false,
       );
 
       if (!mounted) return;
@@ -255,7 +244,17 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
       await _showSuccessDialog(message);
     } catch (e) {
       if (!mounted) return;
-      await _showErrorDialog(e.toString());
+      final rawMsg = e.toString().toLowerCase();
+      final displayMsg =
+          (rawMsg.contains("socket") ||
+              rawMsg.contains("connection") ||
+              rawMsg.contains("network") ||
+              rawMsg.contains("internet") ||
+              rawMsg.contains("host lookup") ||
+              rawMsg.contains("failed host"))
+          ? "No internet connection. Please check your network."
+          : "Something went wrong. Please try again.";
+      await _showErrorDialog(displayMsg); 
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
@@ -280,7 +279,10 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(width * 0.06),
-            border: Border.all(color: Colors.green.withOpacity(0.3), width: 1.5),
+            border: Border.all(
+              color: Colors.green.withOpacity(0.3),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.green.withOpacity(0.2),
@@ -486,19 +488,12 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(width * 0.03),
-        borderSide: const BorderSide(
-          color: skyBlue,
-          width: 2.0,
-        ),
+        borderSide: const BorderSide(color: skyBlue, width: 2.0),
       ),
       filled: true,
       fillColor: isDarkMode ? slate.withOpacity(0.5) : offWhite,
       prefixIcon: icon != null
-          ? Icon(
-              icon,
-              size: width * 0.05,
-              color: skyBlue,
-            )
+          ? Icon(icon, size: width * 0.05, color: skyBlue)
           : null,
       prefixIconColor: skyBlue,
       suffixIcon: label.contains("Date")
@@ -567,7 +562,9 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                   onChanged(option['value']);
                 }
               },
-              backgroundColor: isDarkMode ? slate.withOpacity(0.5) : Colors.grey[200],
+              backgroundColor: isDarkMode
+                  ? slate.withOpacity(0.5)
+                  : Colors.grey[200],
               selectedColor: optionColor,
               side: BorderSide(
                 color: isSelected
@@ -599,10 +596,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(
-              strokeWidth: 3,
-              color: skyBlue,
-            ),
+            const CircularProgressIndicator(strokeWidth: 3, color: skyBlue),
             SizedBox(height: width * 0.05),
             Text(
               "Loading options from ERP...",
@@ -672,7 +666,6 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                             opacity: _fadeAnimation.value,
                             child: Column(
                               children: [
-                                
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: width * 0.04,
@@ -723,7 +716,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                               letterSpacing: 0.5,
                                             ),
                                           ),
-                                          
+
                                           PopupMenuButton<String>(
                                             icon: Container(
                                               padding: EdgeInsets.all(
@@ -744,8 +737,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                 ),
                                               ),
                                               child: Icon(
-                                                Icons
-                                                    .more_horiz_rounded,
+                                                Icons.more_horiz_rounded,
                                                 color: Colors.white,
                                                 size: width * 0.05,
                                               ),
@@ -771,7 +763,6 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                 height: height * 0.06,
                                                 child: Row(
                                                   children: [
-                                                    
                                                     Container(
                                                       padding: EdgeInsets.all(
                                                         width * 0.02,
@@ -779,14 +770,12 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                       decoration: BoxDecoration(
                                                         gradient: LinearGradient(
                                                           colors: [
-                                                            skyBlue
-                                                                .withOpacity(
-                                                                  0.2,
-                                                                ),
-                                                            deepSky
-                                                                .withOpacity(
-                                                                  0.1,
-                                                                ),
+                                                            skyBlue.withOpacity(
+                                                              0.2,
+                                                            ),
+                                                            deepSky.withOpacity(
+                                                              0.1,
+                                                            ),
                                                           ],
                                                           begin:
                                                               Alignment.topLeft,
@@ -845,7 +834,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                         ],
                                                       ),
                                                     ),
-                                                    
+
                                                     Icon(
                                                       Icons
                                                           .arrow_forward_ios_rounded,
@@ -857,10 +846,8 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                 ),
                                               ),
 
-                                              
                                               const PopupMenuDivider(),
 
-                                              
                                               PopupMenuItem(
                                                 enabled: false,
                                                 child: Row(
@@ -941,7 +928,6 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                   ),
                                 ),
 
-                                
                                 Container(
                                   color: backgroundColor,
                                   child: Card(
@@ -1027,7 +1013,6 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                     height: height * 0.025,
                                                   ),
 
-                                                  
                                                   Row(
                                                     children: [
                                                       Expanded(
@@ -1212,7 +1197,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                     minLines: 3,
                                                     decoration: _inputDecoration(
                                                       "Enter any additional details or requirements...",
-                                                      icon: Icons.notes
+                                                      icon: Icons.notes,
                                                     ),
                                                   ),
 

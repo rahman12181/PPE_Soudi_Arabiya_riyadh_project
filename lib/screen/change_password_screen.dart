@@ -671,11 +671,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                                                   value.isEmpty) {
                                                 return "Email required";
                                               }
-                                              if (!RegExp(
-                                                r'^[a-zA-Z0-9._%+-]+@ppecon\.com$',
-                                              ).hasMatch(value)) {
-                                                return "Only @ppecon.com emails are allowed";
-                                              }
                                               return null;
                                             },
                                           ),

@@ -14,13 +14,17 @@ class PunchProvider extends ChangeNotifier {
   DateTime? get punchOutTime => _punchOutTime;
   bool get isLoaded => _isLoaded;
 
-  // ✅ RULE: All times stored and displayed in ERP's Asia/Riyadh timezone (UTC+3).
-  // We never convert to/from device local time.
-  // setPunchIn/Out: called with DateTime.now() at punch time (device must be Saudi time)
-  // syncTodayFromApi: ERP times stored as-is (already Riyadh time)
-  // Display: DateFormat('hh:mm a').format(punchInTime!) — shows ERP time correctly
-
   static final DateFormat _storageFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+
+  /// ✅ Returns current Riyadh time as a PLAIN DateTime
+  /// (same "kind" as _punchInTime which is also plain/no-timezone)
+  /// This ensures difference() calculation is always correct.
+  DateTime _riyadhNow() {
+    final utcNow = DateTime.now().toUtc();
+    final riyadhNow = utcNow.add(const Duration(hours: 3));
+    // Re-parse through format to strip UTC flag → plain datetime
+    return _storageFormat.parse(_storageFormat.format(riyadhNow), false);
+  }
 
   void setEmployeeId(String id) {
     if (_employeeId == id) return;
@@ -30,8 +34,6 @@ class PunchProvider extends ChangeNotifier {
   }
 
   String _todayKey() {
-    // ✅ Use Saudi/Riyadh date for key — add UTC+3 offset to UTC time
-    // This ensures the key is always the correct Saudi date regardless of device timezone
     final todayRiyadh = DateTime.now().toUtc().add(const Duration(hours: 3));
     final dateStr = DateFormat('yyyy-MM-dd').format(todayRiyadh);
     if (_employeeId != null && _employeeId!.isNotEmpty) {
@@ -55,7 +57,7 @@ class PunchProvider extends ChangeNotifier {
       final inStr = prefs.getString("IN_$key");
       final outStr = prefs.getString("OUT_$key");
 
-      // ✅ Parse stored strings as plain datetime — no timezone conversion
+      // ✅ Parse as plain datetime — no timezone flag
       _punchInTime = (inStr != null && inStr.isNotEmpty)
           ? _storageFormat.parse(inStr, false)
           : null;
@@ -89,7 +91,6 @@ class PunchProvider extends ChangeNotifier {
         employeeId: employeeId,
       );
 
-      // ✅ These are already ERP (Riyadh) times — no conversion needed
       final DateTime? punchIn = todayData['punchIn'];
       final DateTime? punchOut = todayData['punchOut'];
 
@@ -118,7 +119,6 @@ class PunchProvider extends ChangeNotifier {
     final key = _todayKey();
 
     if (punchIn != null) {
-      // ✅ Store ERP time as-is using our format string
       final str = _storageFormat.format(punchIn);
       await prefs.setString("IN_$key", str);
       _punchInTime = punchIn;
@@ -137,15 +137,15 @@ class PunchProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final key = _todayKey();
 
-    // ✅ Convert device time to Riyadh time for storage and display
-    // This handles case where device might not be in Saudi timezone
+    // ✅ Convert device time → Riyadh time → store as plain datetime
     final riyadhTime = deviceTime.toUtc().add(const Duration(hours: 3));
-    final str = _storageFormat.format(riyadhTime);
+    final plainRiyadh = _storageFormat.parse(_storageFormat.format(riyadhTime), false);
+    final str = _storageFormat.format(plainRiyadh);
 
     await prefs.setString("IN_$key", str);
     await prefs.remove("OUT_$key");
 
-    _punchInTime = riyadhTime;
+    _punchInTime = plainRiyadh;
     _punchOutTime = null;
     notifyListeners();
   }
@@ -155,27 +155,28 @@ class PunchProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final key = _todayKey();
 
-    // ✅ Convert device time to Riyadh time for storage and display
+    // ✅ Convert device time → Riyadh time → store as plain datetime
     final riyadhTime = deviceTime.toUtc().add(const Duration(hours: 3));
-    final str = _storageFormat.format(riyadhTime);
+    final plainRiyadh = _storageFormat.parse(_storageFormat.format(riyadhTime), false);
+    final str = _storageFormat.format(plainRiyadh);
 
     await prefs.setString("OUT_$key", str);
-    _punchOutTime = riyadhTime;
+    _punchOutTime = plainRiyadh;
     notifyListeners();
   }
 
   String totalHours() {
     if (_punchInTime == null) return "00:00";
-    final end = _punchOutTime ??
-        DateTime.now().toUtc().add(const Duration(hours: 3));
+    // ✅ _riyadhNow() returns same "kind" of plain DateTime as _punchInTime
+    // So difference() is always correct — no 3hr offset bug
+    final end = _punchOutTime ?? _riyadhNow();
     final diff = end.difference(_punchInTime!);
     return "${diff.inHours.toString().padLeft(2, '0')}:${(diff.inMinutes % 60).toString().padLeft(2, '0')}";
   }
 
   double progressValue() {
     if (_punchInTime == null) return 0;
-    final end = _punchOutTime ??
-        DateTime.now().toUtc().add(const Duration(hours: 3));
+    final end = _punchOutTime ?? _riyadhNow(); // ✅
     return (end.difference(_punchInTime!).inSeconds / (12 * 60 * 60))
         .clamp(0.0, 1.0);
   }
@@ -207,8 +208,7 @@ class PunchProvider extends ChangeNotifier {
 
   Duration getTotalDuration() {
     if (_punchInTime == null) return Duration.zero;
-    final end = _punchOutTime ??
-        DateTime.now().toUtc().add(const Duration(hours: 3));
+    final end = _punchOutTime ?? _riyadhNow(); // ✅
     return end.difference(_punchInTime!);
   }
 }

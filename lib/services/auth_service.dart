@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -198,23 +200,32 @@ class AuthService {
 
   // ================= FORGOT PASSWORD =================
   Future<String> forgotPassword(String email) async {
-    final url = Uri.parse(
-        "$baseUrl/api/method/frappe.core.doctype.user.user.reset_password");
+  final url = Uri.parse(
+      "$baseUrl/api/method/frappe.core.doctype.user.user.reset_password");
 
-    final response = await safeRequest(() {
-      return http.post(
-        url,
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: {"user": email},
-      );
-    });
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json",
+      },
+      body: {"user": email},
+    );
 
+    // Frappe returns 200 on success
     if (response.statusCode == 200) {
       return "Reset link sent successfully.";
-    } else {
-      throw "Request failed: ${response.statusCode}";
     }
+
+    // Show actual error for debugging
+    throw Exception("Server error ${response.statusCode}: ${response.body}");
+  } on SocketException {
+    throw Exception("No internet connection.");
+  } on TimeoutException {
+    throw Exception("Request timed out.");
   }
+}
 
   // ================= INITIAL ROUTE =================
   Future<String> getInitialRoute() async {
