@@ -116,15 +116,15 @@ class _HomemainScreenState extends State<HomemainScreen>
     _connectivityService.initialize();
     _checkInternetConnection();
 
-    _connectivitySubscription = _connectivityService.connectionStatus.listen((
-      result,
-    ) {
-      if (!mounted) return;
-      setState(() {
-        _connectionType = result;
-        _hasInternet = result != ConnectivityResult.none;
-      });
-    });
+    _connectivitySubscription = _connectivityService.connectionStatus.listen(
+      (result) {
+        if (!mounted) return;
+        setState(() {
+          _connectionType = result;
+          _hasInternet = result != ConnectivityResult.none;
+        });
+      },
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fetchLocation();
@@ -314,77 +314,159 @@ class _HomemainScreenState extends State<HomemainScreen>
     ];
   }
 
+  // ==================== UPDATED DIALOGS ====================
+  
   void _showSuccessDialog({required String message, required bool isPunchIn}) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final gradientColors = _getHeaderGradientColors(
-      Theme.of(context).brightness == Brightness.dark,
-    );
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color successColor = const Color(0xFF22C55E);
+    
+    final String formattedTime = DateFormat('hh:mm a').format(DateTime.now());
+    
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.3),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            width: screenWidth * 0.7,
-            height: screenHeight * 0.2,
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? slate
-                  : pureWhite,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: gradientColors.first.withOpacity(0.3),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-              border: Border.all(
-                color: gradientColors.first.withOpacity(0.2),
-                width: 1.5,
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.8, end: 1.0),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+          builder: (context, scale, child) {
+            return Transform.scale(
+              scale: scale,
+              child: FadeTransition(
+                opacity: AlwaysStoppedAnimation(scale),
+                child: child,
               ),
-            ),
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            );
+          },
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              width: screenWidth * 0.85,
+              padding: EdgeInsets.all(screenWidth * 0.06),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDarkMode
+                      ? [charcoal, slate]
+                      : [pureWhite, offWhite],
+                ),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: successColor.withOpacity(0.4),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+                border: Border.all(
+                  color: successColor.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [successColor, successColor.withOpacity(0.7)],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: successColor.withOpacity(0.5),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            isPunchIn ? Icons.login_rounded : Icons.logout_rounded,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  
+                  Text(
+                    isPunchIn ? "PUNCH IN ✓" : "PUNCH OUT ✓",
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.045,
+                      fontWeight: FontWeight.w800,
+                      color: successColor,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.01),
+                  
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.06,
+                      vertical: screenHeight * 0.01,
+                    ),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: gradientColors),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: gradientColors.first.withOpacity(0.4),
-                          blurRadius: 15,
-                          spreadRadius: 2,
+                      color: successColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: successColor.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: successColor,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          formattedTime,
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.04,
+                            fontWeight: FontWeight.w700,
+                            color: successColor,
+                          ),
                         ),
                       ],
                     ),
-                    child: Icon(
-                      isPunchIn ? Icons.login_rounded : Icons.logout_rounded,
-                      color: Colors.white,
-                      size: 24,
+                  ),
+                  SizedBox(height: screenHeight * 0.015),
+                  
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.035,
+                      color: isDarkMode ? pureWhite : charcoal,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? pureWhite
-                            : charcoal,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                  SizedBox(height: screenHeight * 0.02),
+                  
+                  SizedBox(
+                    width: screenWidth * 0.1,
+                    child: LinearProgressIndicator(
+                      backgroundColor: successColor.withOpacity(0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(successColor),
                     ),
                   ),
                 ],
@@ -394,8 +476,9 @@ class _HomemainScreenState extends State<HomemainScreen>
         );
       },
     );
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
+    
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && Navigator.canPop(context)) {
         Navigator.pop(context);
       }
     });
@@ -406,94 +489,170 @@ class _HomemainScreenState extends State<HomemainScreen>
     VoidCallback? onAction,
     String actionText = 'OK',
   }) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color errorColor = const Color(0xFFEF4444);
+    
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.3),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            width: screenWidth * 0.7,
-            height: screenHeight * 0.2,
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? slate
-                  : pureWhite,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.red.withOpacity(0.3),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-              border: Border.all(
-                color: Colors.red.withOpacity(0.3),
-                width: 1.5,
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.8, end: 1.0),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+          builder: (context, scale, child) {
+            return Transform.scale(
+              scale: scale,
+              child: FadeTransition(
+                opacity: AlwaysStoppedAnimation(scale),
+                child: child,
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.error_outline_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+            );
+          },
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              width: screenWidth * 0.85,
+              padding: EdgeInsets.all(screenWidth * 0.06),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDarkMode
+                      ? [charcoal, slate]
+                      : [pureWhite, offWhite],
                 ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (onAction != null) ...[
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      onAction();
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      backgroundColor: Colors.red.withOpacity(0.1),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                    ),
-                    child: Text(actionText),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: errorColor.withOpacity(0.4),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                    offset: const Offset(0, 10),
                   ),
                 ],
-              ],
+                border: Border.all(
+                  color: errorColor.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [errorColor, errorColor.withOpacity(0.7)],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: errorColor.withOpacity(0.5),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  
+                  Text(
+                    "PUNCH FAILED",
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.045,
+                      fontWeight: FontWeight.w800,
+                      color: errorColor,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.015),
+                  
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.04,
+                      vertical: screenHeight * 0.01,
+                    ),
+                    decoration: BoxDecoration(
+                      color: errorColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.035,
+                        color: errorColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  
+                  if (onAction != null)
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onAction();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: errorColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.08,
+                          vertical: screenHeight * 0.012,
+                        ),
+                      ),
+                      child: Text(
+                        actionText,
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.035,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      width: screenWidth * 0.1,
+                      child: LinearProgressIndicator(
+                        backgroundColor: errorColor.withOpacity(0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(errorColor),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         );
       },
     );
+    
     if (onAction == null) {
-      Timer(const Duration(seconds: 2), () {
-        if (mounted) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted && Navigator.canPop(context)) {
           Navigator.pop(context);
         }
       });
@@ -501,143 +660,223 @@ class _HomemainScreenState extends State<HomemainScreen>
   }
 
   void _showInfoDialog(String message, {Color color = Colors.blue}) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final gradientColors = _getHeaderGradientColors(
-      Theme.of(context).brightness == Brightness.dark,
-    );
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.3),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            width: screenWidth * 0.7,
-            height: screenHeight * 0.2,
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? slate
-                  : pureWhite,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: gradientColors.first.withOpacity(0.2),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-              border: Border.all(
-                color: gradientColors.first.withOpacity(0.2),
-                width: 1.5,
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.8, end: 1.0),
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+          builder: (context, scale, child) {
+            return Transform.scale(
+              scale: scale,
+              child: FadeTransition(
+                opacity: AlwaysStoppedAnimation(scale),
+                child: child,
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: gradientColors),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.info_outline_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+            );
+          },
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              width: screenWidth * 0.85,
+              padding: EdgeInsets.all(screenWidth * 0.06),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDarkMode
+                      ? [charcoal, slate]
+                      : [pureWhite, offWhite],
                 ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    message,
-                    textAlign: TextAlign.center,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.4),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+                border: Border.all(
+                  color: color.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [color, color.withOpacity(0.7)],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: color.withOpacity(0.5),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            color == const Color(0xFFF97316) 
+                                ? Icons.warning_rounded
+                                : Icons.info_outline_rounded,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  
+                  Text(
+                    "INFORMATION",
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? pureWhite
-                          : charcoal,
+                      fontSize: screenWidth * 0.045,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: 1,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                  SizedBox(height: screenHeight * 0.015),
+                  
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.04,
+                      vertical: screenHeight * 0.01,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.035,
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  
+                  SizedBox(
+                    width: screenWidth * 0.1,
+                    child: LinearProgressIndicator(
+                      backgroundColor: color.withOpacity(0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
     );
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
+    
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && Navigator.canPop(context)) {
         Navigator.pop(context);
       }
     });
   }
 
   void _showBiometricDialog(String message) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final gradientColors = _getHeaderGradientColors(
-      Theme.of(context).brightness == Brightness.dark,
-    );
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final gradientColors = _getHeaderGradientColors(isDarkMode);
+    
     showDialog(
       context: context,
       barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (BuildContext context) {
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
           child: Container(
-            width: screenWidth * 0.7,
-            padding: const EdgeInsets.all(20),
+            width: screenWidth * 0.85,
+            padding: EdgeInsets.all(screenWidth * 0.06),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? slate
-                  : pureWhite,
-              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDarkMode
+                    ? [charcoal, slate]
+                    : [pureWhite, offWhite],
+              ),
+              borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: gradientColors.first.withOpacity(0.3),
-                  blurRadius: 20,
+                  color: gradientColors.first.withOpacity(0.4),
+                  blurRadius: 30,
                   spreadRadius: 5,
+                  offset: const Offset(0, 10),
                 ),
               ],
+              border: Border.all(
+                color: gradientColors.first.withOpacity(0.3),
+                width: 2,
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: gradientColors),
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradientColors.first.withOpacity(0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
                   ),
                   child: const Icon(
                     Icons.fingerprint_rounded,
                     color: Colors.white,
-                    size: 32,
+                    size: 50,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: screenHeight * 0.02),
                 Text(
                   message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? pureWhite
-                        : charcoal,
+                    fontSize: screenWidth * 0.04,
+                    fontWeight: FontWeight.w700,
+                    color: isDarkMode ? pureWhite : charcoal,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const CircularProgressIndicator(),
+                SizedBox(height: screenHeight * 0.02),
+                const CircularProgressIndicator(
+                  strokeWidth: 3,
+                ),
               ],
             ),
           ),
@@ -645,6 +884,8 @@ class _HomemainScreenState extends State<HomemainScreen>
       },
     );
   }
+
+  // ==================== REST OF YOUR ORIGINAL CODE (NO CHANGES) ====================
 
   Future<void> _onPunchTap() async {
     final punchProvider = Provider.of<PunchProvider>(context, listen: false);
@@ -1978,7 +2219,6 @@ class _HomemainScreenState extends State<HomemainScreen>
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
-                                  //  .add(hours:3) hataya — direct local time display
                                   _buildTimeWidget(
                                     punchProvider.punchInTime == null
                                         ? "--:--"

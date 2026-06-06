@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   bool _isloading = false;
   bool _isPasswordVisible = false;
+  bool _rememberMe = false; // ✅ ADDED
 
   // Animation controllers
   late AnimationController _animationController;
@@ -52,6 +53,8 @@ class _LoginScreenState extends State<LoginScreen>
   void initState() {
     super.initState();
 
+    _loadSavedCredentials(); // ✅ ADDED
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -77,6 +80,22 @@ class _LoginScreenState extends State<LoginScreen>
     );
 
     _animationController.forward();
+  }
+
+  // ✅ ADDED - Load saved credentials
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('rememberedEmail') ?? '';
+    final savedPassword = prefs.getString('rememberedPassword') ?? '';
+    final rememberMe = prefs.getBool('rememberMe') ?? false;
+
+    if (rememberMe) {
+      setState(() {
+        _emailController.text = savedEmail;
+        _passwordController.text = savedPassword;
+        _rememberMe = true;
+      });
+    }
   }
 
   @override
@@ -596,11 +615,9 @@ class _LoginScreenState extends State<LoginScreen>
                                       if (value == null || value.isEmpty) {
                                         return "Email required";
                                       }
-                                      // Simple email format check (must contain @)
                                       if (!value.contains('@')) {
                                         return "Enter a valid email address";
                                       }
-                                      // No domain restriction anymore
                                       return null;
                                     },
                                   ),
@@ -766,7 +783,36 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                               ),
 
-                              SizedBox(height: responsiveHeight(0.04)),
+                              SizedBox(height: responsiveHeight(0.01)),
+
+                              // ✅ ADDED - Remember Me Checkbox
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _rememberMe,
+                                    onChanged: (value) {
+                                      HapticFeedback.selectionClick();
+                                      setState(() {
+                                        _rememberMe = value ?? false;
+                                      });
+                                    },
+                                    activeColor: skyBlue,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  Text(
+                                    "Remember Me",
+                                    style: TextStyle(
+                                      fontSize: responsiveFontSize(14),
+                                      color: textColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: responsiveHeight(0.02)),
 
                               // ========== PREMIUM LOGIN BUTTON with Sky Blue Theme ==========
                               TweenAnimationBuilder(
@@ -817,6 +863,17 @@ class _LoginScreenState extends State<LoginScreen>
                                                 print(
                                                   "✅ User Email saved: ${_emailController.text.trim()}",
                                                 );
+
+                                                // ✅ ADDED - Remember Me save/clear logic
+                                                if (_rememberMe) {
+                                                  await prefs.setString('rememberedEmail', _emailController.text.trim());
+                                                  await prefs.setString('rememberedPassword', _passwordController.text.trim());
+                                                  await prefs.setBool('rememberMe', true);
+                                                } else {
+                                                  await prefs.remove('rememberedEmail');
+                                                  await prefs.remove('rememberedPassword');
+                                                  await prefs.setBool('rememberMe', false);
+                                                }
 
                                                 // 🔥 CLEAR OLD CACHE
                                                 final profileProvider =
@@ -893,7 +950,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                     response["message"] ??
                                                     "Login failed";
 
-                                                // ✅ NETWORK ERROR CHECK - YAHI PE FIX KARNA HAI
                                                 final errorMsgLower = errorMsg
                                                     .toLowerCase();
                                                 final isNetworkError =
@@ -926,7 +982,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                   _showErrorDialog(
                                                     context,
                                                     "No Internet Connection",
-                                                    "Please check your network and try again.", // ✅ CLEAN MESSAGE
+                                                    "Please check your network and try again.",
                                                   );
                                                 } else if (errorMsg.contains(
                                                   "User not found",
@@ -949,10 +1005,9 @@ class _LoginScreenState extends State<LoginScreen>
                                                     context,
                                                     "Login Failed",
                                                     "Something went wrong. Please try again.",
-                                                  ); // ✅ GENERIC MESSAGE
+                                                  );
                                                 }
                                               }
-                                              // ✅ BAAD MEIN
                                             } catch (e) {
                                               setState(
                                                 () => _isloading = false,
@@ -984,7 +1039,7 @@ class _LoginScreenState extends State<LoginScreen>
                                               _showErrorDialog(
                                                 context,
                                                 "Error",
-                                                displayMsg, // ✅ clean message
+                                                displayMsg,
                                               );
                                             }
                                           },
