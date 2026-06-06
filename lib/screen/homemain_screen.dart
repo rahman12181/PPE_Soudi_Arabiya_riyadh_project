@@ -314,7 +314,7 @@ class _HomemainScreenState extends State<HomemainScreen>
     ];
   }
 
-  // ==================== UPDATED DIALOGS ====================
+  // ==================== UPDATED SMALLER DIALOGS (30% smaller) ====================
   
   void _showSuccessDialog({required String message, required bool isPunchIn}) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -331,23 +331,20 @@ class _HomemainScreenState extends State<HomemainScreen>
       builder: (BuildContext context) {
         return TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0.8, end: 1.0),
-          duration: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
           builder: (context, scale, child) {
             return Transform.scale(
               scale: scale,
-              child: FadeTransition(
-                opacity: AlwaysStoppedAnimation(scale),
-                child: child,
-              ),
+              child: child,
             );
           },
           child: Dialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
             child: Container(
-              width: screenWidth * 0.85,
-              padding: EdgeInsets.all(screenWidth * 0.06),
+              width: screenWidth * 0.75,
+              padding: EdgeInsets.all(screenWidth * 0.04),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -356,18 +353,18 @@ class _HomemainScreenState extends State<HomemainScreen>
                       ? [charcoal, slate]
                       : [pureWhite, offWhite],
                 ),
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: successColor.withOpacity(0.4),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                    offset: const Offset(0, 10),
+                    color: successColor.withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 3,
+                    offset: const Offset(0, 8),
                   ),
                 ],
                 border: Border.all(
                   color: successColor.withOpacity(0.3),
-                  width: 2,
+                  width: 1.5,
                 ),
               ),
               child: Column(
@@ -375,13 +372,13 @@ class _HomemainScreenState extends State<HomemainScreen>
                 children: [
                   TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 400),
                     curve: Curves.elasticOut,
                     builder: (context, value, child) {
                       return Transform.scale(
                         scale: value,
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [successColor, successColor.withOpacity(0.7)],
@@ -389,42 +386,42 @@ class _HomemainScreenState extends State<HomemainScreen>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: successColor.withOpacity(0.5),
-                                blurRadius: 20,
-                                spreadRadius: 5,
+                                color: successColor.withOpacity(0.4),
+                                blurRadius: 15,
+                                spreadRadius: 3,
                               ),
                             ],
                           ),
                           child: Icon(
                             isPunchIn ? Icons.login_rounded : Icons.logout_rounded,
                             color: Colors.white,
-                            size: 40,
+                            size: 28,
                           ),
                         ),
                       );
                     },
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Text(
                     isPunchIn ? "PUNCH IN ✓" : "PUNCH OUT ✓",
                     style: TextStyle(
-                      fontSize: screenWidth * 0.045,
+                      fontSize: screenWidth * 0.035,
                       fontWeight: FontWeight.w800,
                       color: successColor,
-                      letterSpacing: 1,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.01),
+                  SizedBox(height: screenHeight * 0.008),
                   
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.01,
+                      horizontal: screenWidth * 0.04,
+                      vertical: screenHeight * 0.005,
                     ),
                     decoration: BoxDecoration(
                       color: successColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: successColor.withOpacity(0.3),
                       ),
@@ -435,13 +432,13 @@ class _HomemainScreenState extends State<HomemainScreen>
                         Icon(
                           Icons.check_circle_rounded,
                           color: successColor,
-                          size: 20,
+                          size: 14,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         Text(
                           formattedTime,
                           style: TextStyle(
-                            fontSize: screenWidth * 0.04,
+                            fontSize: screenWidth * 0.03,
                             fontWeight: FontWeight.w700,
                             color: successColor,
                           ),
@@ -449,21 +446,24 @@ class _HomemainScreenState extends State<HomemainScreen>
                       ],
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.015),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Text(
                     message,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: screenWidth * 0.035,
+                      fontSize: screenWidth * 0.028,
                       color: isDarkMode ? pureWhite : charcoal,
                       fontWeight: FontWeight.w500,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.015),
                   
                   SizedBox(
-                    width: screenWidth * 0.1,
+                    width: screenWidth * 0.08,
+                    height: 2,
                     child: LinearProgressIndicator(
                       backgroundColor: successColor.withOpacity(0.2),
                       valueColor: AlwaysStoppedAnimation<Color>(successColor),
@@ -501,23 +501,20 @@ class _HomemainScreenState extends State<HomemainScreen>
       builder: (BuildContext context) {
         return TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0.8, end: 1.0),
-          duration: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
           builder: (context, scale, child) {
             return Transform.scale(
               scale: scale,
-              child: FadeTransition(
-                opacity: AlwaysStoppedAnimation(scale),
-                child: child,
-              ),
+              child: child,
             );
           },
           child: Dialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
             child: Container(
-              width: screenWidth * 0.85,
-              padding: EdgeInsets.all(screenWidth * 0.06),
+              width: screenWidth * 0.75,
+              padding: EdgeInsets.all(screenWidth * 0.04),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -526,18 +523,18 @@ class _HomemainScreenState extends State<HomemainScreen>
                       ? [charcoal, slate]
                       : [pureWhite, offWhite],
                 ),
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: errorColor.withOpacity(0.4),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                    offset: const Offset(0, 10),
+                    color: errorColor.withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 3,
+                    offset: const Offset(0, 8),
                   ),
                 ],
                 border: Border.all(
                   color: errorColor.withOpacity(0.3),
-                  width: 2,
+                  width: 1.5,
                 ),
               ),
               child: Column(
@@ -545,13 +542,13 @@ class _HomemainScreenState extends State<HomemainScreen>
                 children: [
                   TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 400),
                     curve: Curves.elasticOut,
                     builder: (context, value, child) {
                       return Transform.scale(
                         scale: value,
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [errorColor, errorColor.withOpacity(0.7)],
@@ -559,38 +556,38 @@ class _HomemainScreenState extends State<HomemainScreen>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: errorColor.withOpacity(0.5),
-                                blurRadius: 20,
-                                spreadRadius: 5,
+                                color: errorColor.withOpacity(0.4),
+                                blurRadius: 15,
+                                spreadRadius: 3,
                               ),
                             ],
                           ),
                           child: const Icon(
                             Icons.close_rounded,
                             color: Colors.white,
-                            size: 40,
+                            size: 28,
                           ),
                         ),
                       );
                     },
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Text(
-                    "PUNCH FAILED",
+                    "FAILED",
                     style: TextStyle(
-                      fontSize: screenWidth * 0.045,
+                      fontSize: screenWidth * 0.035,
                       fontWeight: FontWeight.w800,
                       color: errorColor,
-                      letterSpacing: 1,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.015),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.04,
-                      vertical: screenHeight * 0.01,
+                      horizontal: screenWidth * 0.03,
+                      vertical: screenHeight * 0.005,
                     ),
                     decoration: BoxDecoration(
                       color: errorColor.withOpacity(0.1),
@@ -600,43 +597,45 @@ class _HomemainScreenState extends State<HomemainScreen>
                       message,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.035,
+                        fontSize: screenWidth * 0.028,
                         color: errorColor,
                         fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.015),
                   
                   if (onAction != null)
-                    ElevatedButton(
+                    TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                         onAction();
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: errorColor,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: errorColor.withOpacity(0.1),
+                        foregroundColor: errorColor,
                         padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.08,
-                          vertical: screenHeight * 0.012,
+                          horizontal: screenWidth * 0.06,
+                          vertical: screenHeight * 0.008,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
                       ),
                       child: Text(
                         actionText,
                         style: TextStyle(
-                          fontSize: screenWidth * 0.035,
+                          fontSize: screenWidth * 0.03,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     )
                   else
                     SizedBox(
-                      width: screenWidth * 0.1,
+                      width: screenWidth * 0.08,
+                      height: 2,
                       child: LinearProgressIndicator(
                         backgroundColor: errorColor.withOpacity(0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(errorColor),
@@ -671,23 +670,20 @@ class _HomemainScreenState extends State<HomemainScreen>
       builder: (BuildContext context) {
         return TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0.8, end: 1.0),
-          duration: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
           builder: (context, scale, child) {
             return Transform.scale(
               scale: scale,
-              child: FadeTransition(
-                opacity: AlwaysStoppedAnimation(scale),
-                child: child,
-              ),
+              child: child,
             );
           },
           child: Dialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
             child: Container(
-              width: screenWidth * 0.85,
-              padding: EdgeInsets.all(screenWidth * 0.06),
+              width: screenWidth * 0.75,
+              padding: EdgeInsets.all(screenWidth * 0.04),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -696,18 +692,18 @@ class _HomemainScreenState extends State<HomemainScreen>
                       ? [charcoal, slate]
                       : [pureWhite, offWhite],
                 ),
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.4),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                    offset: const Offset(0, 10),
+                    color: color.withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 3,
+                    offset: const Offset(0, 8),
                   ),
                 ],
                 border: Border.all(
                   color: color.withOpacity(0.3),
-                  width: 2,
+                  width: 1.5,
                 ),
               ),
               child: Column(
@@ -715,13 +711,13 @@ class _HomemainScreenState extends State<HomemainScreen>
                 children: [
                   TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 400),
                     curve: Curves.elasticOut,
                     builder: (context, value, child) {
                       return Transform.scale(
                         scale: value,
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [color, color.withOpacity(0.7)],
@@ -729,9 +725,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: color.withOpacity(0.5),
-                                blurRadius: 20,
-                                spreadRadius: 5,
+                                color: color.withOpacity(0.4),
+                                blurRadius: 15,
+                                spreadRadius: 3,
                               ),
                             ],
                           ),
@@ -740,29 +736,29 @@ class _HomemainScreenState extends State<HomemainScreen>
                                 ? Icons.warning_rounded
                                 : Icons.info_outline_rounded,
                             color: Colors.white,
-                            size: 40,
+                            size: 28,
                           ),
                         ),
                       );
                     },
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Text(
-                    "INFORMATION",
+                    "INFO",
                     style: TextStyle(
-                      fontSize: screenWidth * 0.045,
+                      fontSize: screenWidth * 0.035,
                       fontWeight: FontWeight.w800,
                       color: color,
-                      letterSpacing: 1,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.015),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.04,
-                      vertical: screenHeight * 0.01,
+                      horizontal: screenWidth * 0.03,
+                      vertical: screenHeight * 0.005,
                     ),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
@@ -772,16 +768,19 @@ class _HomemainScreenState extends State<HomemainScreen>
                       message,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.035,
+                        fontSize: screenWidth * 0.028,
                         color: color,
                         fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.015),
                   
                   SizedBox(
-                    width: screenWidth * 0.1,
+                    width: screenWidth * 0.08,
+                    height: 2,
                     child: LinearProgressIndicator(
                       backgroundColor: color.withOpacity(0.2),
                       valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -817,8 +816,8 @@ class _HomemainScreenState extends State<HomemainScreen>
           backgroundColor: Colors.transparent,
           elevation: 0,
           child: Container(
-            width: screenWidth * 0.85,
-            padding: EdgeInsets.all(screenWidth * 0.06),
+            width: screenWidth * 0.75,
+            padding: EdgeInsets.all(screenWidth * 0.04),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -827,55 +826,59 @@ class _HomemainScreenState extends State<HomemainScreen>
                     ? [charcoal, slate]
                     : [pureWhite, offWhite],
               ),
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: gradientColors.first.withOpacity(0.4),
-                  blurRadius: 30,
-                  spreadRadius: 5,
-                  offset: const Offset(0, 10),
+                  color: gradientColors.first.withOpacity(0.3),
+                  blurRadius: 20,
+                  spreadRadius: 3,
+                  offset: const Offset(0, 8),
                 ),
               ],
               border: Border.all(
                 color: gradientColors.first.withOpacity(0.3),
-                width: 2,
+                width: 1.5,
               ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: gradientColors),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: gradientColors.first.withOpacity(0.5),
-                        blurRadius: 20,
-                        spreadRadius: 5,
+                        color: gradientColors.first.withOpacity(0.4),
+                        blurRadius: 15,
+                        spreadRadius: 3,
                       ),
                     ],
                   ),
                   child: const Icon(
                     Icons.fingerprint_rounded,
                     color: Colors.white,
-                    size: 50,
+                    size: 35,
                   ),
                 ),
-                SizedBox(height: screenHeight * 0.02),
+                SizedBox(height: screenHeight * 0.012),
                 Text(
                   message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: screenWidth * 0.04,
+                    fontSize: screenWidth * 0.03,
                     fontWeight: FontWeight.w700,
                     color: isDarkMode ? pureWhite : charcoal,
                   ),
                 ),
-                SizedBox(height: screenHeight * 0.02),
-                const CircularProgressIndicator(
-                  strokeWidth: 3,
+                SizedBox(height: screenHeight * 0.015),
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
                 ),
               ],
             ),

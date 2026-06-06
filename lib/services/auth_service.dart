@@ -148,7 +148,7 @@ class AuthService {
     return response;
   }
 
-  // ================= 🔥 UPDATED LOGOUT - Preserves Punch Data =================
+  // UPDATED LOGOUT - Preserves Punch Data 
   Future<Map<String, dynamic>> logoutUser() async {
     final url = Uri.parse("$baseUrl/api/method/logout");
 
@@ -159,7 +159,7 @@ class AuthService {
 
       final prefs = await SharedPreferences.getInstance();
       
-      // ✅ IMPORTANT: Backup punch data before clearing everything
+      //  IMPORTANT: Backup punch data before clearing everything
       final Map<String, String> punchDataBackup = {};
       
       // Get all keys from SharedPreferences
@@ -171,19 +171,31 @@ class AuthService {
           final String? value = prefs.getString(key);
           if (value != null) {
             punchDataBackup[key] = value;
-            debugPrint("📦 Backing up punch data: $key = $value");
+            debugPrint(" Backing up punch data: $key = $value");
           }
         }
       }
+
+      final String? rememberedEmail = prefs.getString('rememberedEmail');
+      final String? rememberedPassword = prefs.getString('rememberedPassword');
+      final bool rememberMe = prefs.getBool('rememberMe') ?? false;
       
       // Clear all SharedPreferences
       await prefs.clear();
       debugPrint("🗑️ SharedPreferences cleared");
       
-      // ✅ Restore punch data backup
+      //  Restore punch data backup
       for (var entry in punchDataBackup.entries) {
         await prefs.setString(entry.key, entry.value);
         debugPrint("♻️ Restored punch data: ${entry.key}");
+      }
+
+      // Restore Remember Me data
+      if (rememberMe) {
+        if (rememberedEmail != null) await prefs.setString('rememberedEmail', rememberedEmail);
+        if (rememberedPassword != null) await prefs.setString('rememberedPassword', rememberedPassword);
+        await prefs.setBool('rememberMe', true);
+        debugPrint("♻️ Restored Remember Me data");
       }
       
       // Clear secure storage (password only)
