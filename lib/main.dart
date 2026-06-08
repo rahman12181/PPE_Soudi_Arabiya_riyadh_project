@@ -25,6 +25,7 @@ import 'package:management_app/screen/travel_request_screen.dart';
 import 'package:management_app/services/auth_service.dart';
 import 'package:management_app/utils/systembars_utils.dart';
 import 'package:provider/provider.dart';
+import 'package:quick_actions/quick_actions.dart'; // ✅ ADDED
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,12 +47,55 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget { 
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> { 
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>(); 
+
+  @override
+  void initState() {
+    super.initState();
+    _initQuickActions();  
+  }
+
+  void _initQuickActions() {
+    const QuickActions quickActions = QuickActions();
+
+    quickActions.setShortcutItems(<ShortcutItem>[
+      const ShortcutItem(
+        type: 'home',
+        localizedTitle: 'Home',
+      ),
+      const ShortcutItem(
+        type: 'attendance',
+        localizedTitle: 'Attendance',
+      ),
+      const ShortcutItem(
+        type: 'leave_balance',
+        localizedTitle: 'Leave Balance',
+      ),
+    ]);
+
+    quickActions.initialize((String shortcutType) {
+      if (shortcutType == 'home') {
+        _navigatorKey.currentState?.pushNamed('/homeMainScreen');
+      } else if (shortcutType == 'attendance') {
+        _navigatorKey.currentState?.pushNamed('/attendanceScreen');
+      } else if (shortcutType == 'leave_balance') {
+        _navigatorKey.currentState?.pushNamed('/leaveBalaneceScreen');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigatorKey, 
       debugShowCheckedModeBanner: false,
       title: 'Pioneer',
       themeMode: ThemeMode.system,
