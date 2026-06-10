@@ -8,6 +8,7 @@ import 'package:management_app/screen/change_password_screen.dart';
 import 'package:management_app/screen/profilescreen.dart';
 import 'package:management_app/services/auth_service.dart';
 import 'package:management_app/screen/goodbye_screen.dart';
+import 'package:management_app/main.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -264,6 +265,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             iconColor: mediumSky,
                             onChanged: (value) {
                               setState(() => selectedTheme = value!);
+                              if (value == "Light") {
+                                themeNotifier.value = ThemeMode.light;
+                              } else if (value == "Dark") {
+                                themeNotifier.value = ThemeMode.dark;
+                              } else {
+                                themeNotifier.value = ThemeMode.system;
+                              }
                             },
                             screenWidth: screenWidth,
                             screenHeight: screenHeight,
@@ -276,7 +284,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           SizedBox(height: screenHeight * 0.03),
 
                           // App Settings
-                        /*  _buildPremiumSectionTitle(
+                          /*  _buildPremiumSectionTitle(
                             "App Settings",
                             Icons.app_settings_alt_rounded,
                             gradientColors,
@@ -317,7 +325,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             subtitleColor: subtitleColor,
                             gradientColors: gradientColors,
                           ),*/
-
                           SizedBox(height: screenHeight * 0.05),
 
                           // App Info with Sky Blue Theme
@@ -1035,27 +1042,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ✅ CORRECTED: Perform Logout - DON'T delete punch data
   // Perform Logout
-Future<void> _performLogout(BuildContext context) async {
-  // ✅ REMOVED: punchProvider.clearTodayPunches(); - DON'T delete punch data
-  
-  final auth = AuthService();
-  final result = await auth.logoutUser();
+  Future<void> _performLogout(BuildContext context) async {
+    // ✅ REMOVED: punchProvider.clearTodayPunches(); - DON'T delete punch data
 
-  if (context.mounted) {
-    if (result["success"] == true) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const GoodbyeScreen()),
-        (route) => false,
-      );
-    } else {
-      _showErrorDialog(
-        context,
-        result["message"] ?? "Logout failed. Please try again.",
-      );
+    final auth = AuthService();
+    final result = await auth.logoutUser();
+
+    if (context.mounted) {
+      if (result["success"] == true) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const GoodbyeScreen()),
+          (route) => false,
+        );
+      } else {
+        _showErrorDialog(
+          context,
+          result["message"] ?? "Logout failed. Please try again.",
+        );
+      }
     }
   }
-}
 
   // Premium Error Dialog with Sky Blue Theme
   void _showErrorDialog(BuildContext context, String message) {
