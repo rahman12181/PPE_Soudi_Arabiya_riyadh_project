@@ -242,8 +242,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             options: const [
                               "English",
                               "Arabic",
-                              "Hindi",
-                              "Spanish",
                             ],
                             iconColor: deepSky,
                             onChanged: (value) {
