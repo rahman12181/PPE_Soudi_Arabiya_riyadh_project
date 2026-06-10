@@ -792,7 +792,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  // ✅ ENHANCED Quick Stats with White & Sky Blue Theme - CLEAN & VISIBLE
   Widget _buildQuickStats(double width, double height, BuildContext context) {
     if (_isLoadingStats) {
       return Container(
@@ -812,18 +811,15 @@ class _DashboardScreenState extends State<DashboardScreen>
       );
     }
 
-    // Responsive grid calculation - PREVENT OVERFLOW
     int crossAxisCount = width < 400
         ? 2
         : (width < 600 ? 2 : (width < 900 ? 3 : 5));
 
-    // Calculate card dimensions to prevent overflow
     double horizontalPadding = width * 0.04;
     double totalSpacing = (crossAxisCount + 1) * width * 0.015;
     double availableWidth = width - (horizontalPadding * 2) - totalSpacing;
     double cardWidth = availableWidth / crossAxisCount;
 
-    // Responsive card height - slightly taller for better spacing
     double cardHeight = width < 400
         ? height * 0.16
         : (width < 600
@@ -837,53 +833,57 @@ class _DashboardScreenState extends State<DashboardScreen>
       padding: EdgeInsets.symmetric(horizontal: width * 0.04),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           _buildSectionHeader(context, width, height, "Quick Stats"),
-          SizedBox(height: height * 0.02),
+          SizedBox(height: height * 0.015),
+          Flexible(
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: quickStatsCards.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                childAspectRatio: aspectRatio,
+                crossAxisSpacing: width * 0.012, 
+                mainAxisSpacing: height * 0.008, 
+              ),
+              itemBuilder: (context, index) {
+                final card = quickStatsCards[index];
+                return AnimatedBuilder(
+                  animation: _statsAnimationController,
+                  builder: (context, child) {
+                    double delay = index * 0.08;
+                    double animationValue =
+                        (_statsAnimationController.value - delay).clamp(
+                          0.0,
+                          1.0,
+                        );
 
-          // Stats Grid with Animation
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: quickStatsCards.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: aspectRatio,
-              crossAxisSpacing: width * 0.015,
-              mainAxisSpacing: height * 0.01,
-            ),
-            itemBuilder: (context, index) {
-              final card = quickStatsCards[index];
-              return AnimatedBuilder(
-                animation: _statsAnimationController,
-                builder: (context, child) {
-                  double delay = index * 0.08;
-                  double animationValue =
-                      (_statsAnimationController.value - delay).clamp(0.0, 1.0);
-
-                  return Transform.scale(
-                    scale: Curves.elasticOut.transform(animationValue),
-                    child: Opacity(
-                      opacity: animationValue,
-                      child: _buildWhiteSkyStatCard(
-                        context,
-                        width,
-                        height,
-                        card,
+                    return Transform.scale(
+                      scale: Curves.elasticOut.transform(animationValue),
+                      child: Opacity(
+                        opacity: animationValue,
+                        child: _buildAutoAdjustStatCard(
+                          context,
+                          width,
+                          height,
+                          card,
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ✅ WHITE & SKY BLUE Stat Card - Left Aligned with Single Line Title
-  Widget _buildWhiteSkyStatCard(
+  Widget _buildAutoAdjustStatCard(
     BuildContext context,
     double width,
     double height,
@@ -897,95 +897,102 @@ class _DashboardScreenState extends State<DashboardScreen>
     final Color borderColor = skyBlue.withOpacity(0.3);
     final Color iconBgColor = skyBlue.withOpacity(0.1);
 
-    // Clean the title by removing newlines and trimming
+    // Clean the title
     String cleanTitle = (card['title'] as String).replaceAll('\n', ' ').trim();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: borderColor,
-          width: 1.0, // Thin border
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: skyBlue.withOpacity(isDark ? 0.1 : 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
+    double iconSize = width < 380 ? 24 : (width < 600 ? 28 : 32);
+    double titleFontSize = width < 380 ? 11 : (width < 600 ? 12 : 14);
+    double valueFontSize = width < 380 ? 20 : (width < 600 ? 24 : 28);
+    double subtitleFontSize = width < 380 ? 9 : (width < 600 ? 10 : 12);
+    double paddingHorizontal = width < 380 ? 8 : (width < 600 ? 10 : 12);
+    double paddingVertical = height * 0.012;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: 1.0),
+            boxShadow: [
+              BoxShadow(
+                color: skyBlue.withOpacity(isDark ? 0.1 : 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+                spreadRadius: 0,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(width * 0.02),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // LEFT ALIGNED
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Larger Icon with light sky background
-            Container(
-              padding: EdgeInsets.all(width * 0.018),
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                card['icon'] as IconData,
-                color: skyBlue,
-                size: width * 0.065, // LARGER ICON
-              ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: paddingVertical,
+              horizontal: paddingHorizontal,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+               
+                Container(
+                  padding: EdgeInsets.all(width * 0.012),
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    card['icon'] as IconData,
+                    color: skyBlue,
+                    size: iconSize,
+                  ),
+                ),
 
-            SizedBox(height: height * 0.01),
+                Spacer(flex: 1),
+              
+                Text(
+                  cleanTitle,
+                  style: TextStyle(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w600,
+                    color: textPrimary,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.left,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
 
-            // Title (Card Name) - Single Line, Left Aligned
-            Text(
-              cleanTitle,
-              style: TextStyle(
-                fontSize: _getResponsiveFontSize(width * 0.030, width),
-                fontWeight: FontWeight.w600,
-                color: textPrimary,
-                height: 1.2,
-              ),
-              textAlign: TextAlign.left, // LEFT ALIGNED
-              maxLines: 1, // SINGLE LINE ONLY
-              overflow: TextOverflow.ellipsis,
+                SizedBox(height: height * 0.004), 
+                Text(
+                  card['value'] as String,
+                  style: TextStyle(
+                    fontSize: valueFontSize,
+                    fontWeight: FontWeight.w800,
+                    color: skyBlue,
+                    height: 1.0,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+
+                SizedBox(height: height * 0.003), 
+                Text(
+                  card['subtitle'] as String,
+                  style: TextStyle(
+                    fontSize: subtitleFontSize,
+                    color: textSecondary,
+                    fontWeight: FontWeight.w400,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.left,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                Spacer(flex: 1),
+              ],
             ),
-
-            SizedBox(height: height * 0.008),
-
-            // BIGGER Value Number - Left Aligned
-            Text(
-              card['value'] as String,
-              style: TextStyle(
-                fontSize: _getResponsiveFontSize(
-                  width * 0.060,
-                  width,
-                ), // BIGGER NUMBERS
-                fontWeight: FontWeight.w800,
-                color: skyBlue,
-              ),
-              textAlign: TextAlign.left, // LEFT ALIGNED
-            ),
-
-            SizedBox(height: height * 0.004),
-
-            // Subtitle - Left Aligned
-            Text(
-              card['subtitle'] as String,
-              style: TextStyle(
-                fontSize: _getResponsiveFontSize(width * 0.025, width),
-                color: textSecondary,
-                fontWeight: FontWeight.w400,
-              ),
-              textAlign: TextAlign.left, // LEFT ALIGNED
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
