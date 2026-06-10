@@ -234,34 +234,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             gradientColors: gradientColors,
                           ),
 
-                          SizedBox(height: screenHeight * 0.03),
-
-                          // App Settings
-                          _buildPremiumSectionTitle(
-                            "App Settings",
-                            Icons.app_settings_alt_rounded,
-                            gradientColors,
-                            screenWidth,
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-
-                          _buildPremiumToggleTile(
-                            icon: Icons.mic_none_outlined,
-                            title: "Voice Recognition",
-                            subtitle: "Enable voice commands",
-                            value: voiceEnabled,
-                            iconColor: skyBlue,
-                            onChanged: (value) {
-                              setState(() => voiceEnabled = value);
-                            },
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),
-
                           _buildPremiumDropdownTile(
                             icon: Icons.language_rounded,
                             title: "Language",
@@ -301,6 +273,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             gradientColors: gradientColors,
                           ),
 
+                          SizedBox(height: screenHeight * 0.03),
+
+                          // App Settings
+                        /*  _buildPremiumSectionTitle(
+                            "App Settings",
+                            Icons.app_settings_alt_rounded,
+                            gradientColors,
+                            screenWidth,
+                          ),
+                          SizedBox(height: screenHeight * 0.015),
+
+                          _buildPremiumToggleTile(
+                            icon: Icons.mic_none_outlined,
+                            title: "Voice Recognition",
+                            subtitle: "Enable voice commands",
+                            value: voiceEnabled,
+                            iconColor: skyBlue,
+                            onChanged: (value) {
+                              setState(() => voiceEnabled = value);
+                            },
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                            isDarkMode: isDarkMode,
+                            textColor: textColor,
+                            subtitleColor: subtitleColor,
+                            gradientColors: gradientColors,
+                          ),
+
                           _buildPremiumToggleTile(
                             icon: Icons.face_retouching_natural,
                             title: "Face ID Login",
@@ -316,7 +316,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             textColor: textColor,
                             subtitleColor: subtitleColor,
                             gradientColors: gradientColors,
-                          ),
+                          ),*/
 
                           SizedBox(height: screenHeight * 0.05),
 
