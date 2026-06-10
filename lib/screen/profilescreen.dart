@@ -79,32 +79,35 @@ class _ProfileScreenState extends State<Profilescreen>
         final result = await ProfileService.getCompleteProfile(userEmail);
 
         if (mounted) {
-  if (result['success'] == true) {
-    setState(() {
-      _profileData = result['data'];
-      _isLoading = false;
-    });
-    _animationController.forward();
-  } else {
-    // Get error message from result
-    String errorMessage = result['message'] ?? "Failed to load profile. Please try again.";
-    
-    // Check if it's a network-related error
-    final msgLower = errorMessage.toLowerCase();
-    if (msgLower.contains("network") ||
-        msgLower.contains("connection") ||
-        msgLower.contains("internet") ||
-        msgLower.contains("timeout") ||
-        msgLower.contains("socket")) {
-      errorMessage = "No internet connection. Please check your network.";
-    }
-    
-    setState(() {
-      _errorMessage = errorMessage;
-      _isLoading = false;
-    });
-  }
-}
+          if (result['success'] == true) {
+            setState(() {
+              _profileData = result['data'];
+              _isLoading = false;
+            });
+            _animationController.forward();
+          } else {
+            // Get error message from result
+            String errorMessage =
+                result['message'] ??
+                "Failed to load profile. Please try again.";
+
+            // Check if it's a network-related error
+            final msgLower = errorMessage.toLowerCase();
+            if (msgLower.contains("network") ||
+                msgLower.contains("connection") ||
+                msgLower.contains("internet") ||
+                msgLower.contains("timeout") ||
+                msgLower.contains("socket")) {
+              errorMessage =
+                  "No internet connection. Please check your network.";
+            }
+
+            setState(() {
+              _errorMessage = errorMessage;
+              _isLoading = false;
+            });
+          }
+        }
       } else {
         setState(() {
           _errorMessage = "User email not found. Please login again.";
@@ -113,34 +116,35 @@ class _ProfileScreenState extends State<Profilescreen>
       }
       // ✅ BAAD MEIN
     } catch (e) {
-  if (mounted) {
-    final rawMsg = e.toString().toLowerCase();
-    
-    // Added more keywords that http package might return
-    final isNetworkError = rawMsg.contains("socket") ||
-        rawMsg.contains("connection") ||
-        rawMsg.contains("network") ||
-        rawMsg.contains("internet") ||
-        rawMsg.contains("host lookup") ||
-        rawMsg.contains("failed host") ||
-        rawMsg.contains("failed to fetch") ||
-        rawMsg.contains("network request failed") ||
-        rawMsg.contains("timeout") ||
-        rawMsg.contains("unable to connect") ||
-        rawMsg.contains("connection refused") ||
-        rawMsg.contains("no route to host") ||
-        rawMsg.contains("xmlhttprequest error");
-    
-    final displayMsg = isNetworkError 
-        ? "No internet connection. Please check your network."
-        : "Failed to load profile. Please try again.";
-    
-    setState(() {
-      _errorMessage = displayMsg;
-      _isLoading = false;
-    });
-  }
-}
+      if (mounted) {
+        final rawMsg = e.toString().toLowerCase();
+
+        // Added more keywords that http package might return
+        final isNetworkError =
+            rawMsg.contains("socket") ||
+            rawMsg.contains("connection") ||
+            rawMsg.contains("network") ||
+            rawMsg.contains("internet") ||
+            rawMsg.contains("host lookup") ||
+            rawMsg.contains("failed host") ||
+            rawMsg.contains("failed to fetch") ||
+            rawMsg.contains("network request failed") ||
+            rawMsg.contains("timeout") ||
+            rawMsg.contains("unable to connect") ||
+            rawMsg.contains("connection refused") ||
+            rawMsg.contains("no route to host") ||
+            rawMsg.contains("xmlhttprequest error");
+
+        final displayMsg = isNetworkError
+            ? "No internet connection. Please check your network."
+            : "Failed to load profile. Please try again.";
+
+        setState(() {
+          _errorMessage = displayMsg;
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   String? _getProfileImageUrl() {
@@ -794,6 +798,14 @@ class _ProfileScreenState extends State<Profilescreen>
           Icons.person_rounded,
           deepSky,
           width,
+        ),
+        _buildInfoCard(
+          label: 'ID / Iqama No',
+          value: _profileData!['id_iqama'] ?? 'N/A',
+          icon: Icons.badge_rounded,
+          color: Colors.indigo,
+          width: width,
+          isDarkMode: isDarkMode,
         ),
         SizedBox(height: width * 0.03),
         _buildInfoCard(
