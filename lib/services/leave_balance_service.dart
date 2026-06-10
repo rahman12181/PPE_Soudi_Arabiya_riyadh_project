@@ -121,17 +121,10 @@ class LeaveBalanceService {
         if (jsonResponse.containsKey('message')) {
           final message = jsonResponse['message'];
           
-          if (message is Map && message.containsKey('data')) {
-            final List<dynamic> allLeaveData = message['data'] ?? [];
-            debugPrint('📦 Total records from API: ${allLeaveData.length}');
-            
-            // FILTER FOR CURRENT YEAR ONLY
-            final currentYear = DateTime.now().year;
-            final filteredData = _filterCurrentYearData(allLeaveData, currentYear);
-            
-            debugPrint('🎯 Records after filtering for $currentYear: ${filteredData.length}');
-            
-            return _processAPIResponse(filteredData, employeeId);
+          // New API structure: { "message": { "annual_leave": 20.0, "sick_leave": 4.0 } }
+          if (message is Map) {
+            debugPrint('📦 API message: $message');
+            return _processNewAPIResponse(message, employeeId);
           }
         }
         
@@ -139,7 +132,7 @@ class LeaveBalanceService {
           'success': true,
           'employeeId': employeeId,
           'leaveDetails': {},
-          'totals': {'allocated': 0, 'taken': 0, 'remaining': 0}
+          'totals': {'allocated': 0.0, 'taken': 0.0, 'remaining': 0.0}
         };
       } else if (response.statusCode == 403) {
         return {
@@ -162,53 +155,67 @@ class LeaveBalanceService {
     }
   }
 
-  // Filter data for current year only
-  List<dynamic> _filterCurrentYearData(List<dynamic> data, int currentYear) {
-    return data.where((item) {
-      try {
-        // Check from_date
-        if (item['from_date'] != null) {
-          final fromDate = item['from_date'].toString();
-          // Extract year from date string (YYYY-MM-DD)
-          final yearMatch = RegExp(r'(\d{4})').firstMatch(fromDate);
-          if (yearMatch != null) {
-            final year = int.parse(yearMatch.group(1)!);
-            if (year == currentYear) {
-              return true;
-            }
-          }
-        }
-        
-        // Check to_date if from_date not in current year
-        if (item['to_date'] != null) {
-          final toDate = item['to_date'].toString();
-          final yearMatch = RegExp(r'(\d{4})').firstMatch(toDate);
-          if (yearMatch != null) {
-            final year = int.parse(yearMatch.group(1)!);
-            if (year == currentYear) {
-              return true;
-            }
-          }
-        }
-        
-        return false;
-      } catch (e) {
-        debugPrint('Error filtering date: $e');
-        return false;
+  // Process NEW API response structure:
+  // { "annual_leave": 20.0, "sick_leave": 4.0 }
+  // These values are the REMAINING balance directly.
+  Map<String, dynamic> _processNewAPIResponse(Map<dynamic, dynamic> message, String employeeId) {
+    final Map<String, Map<String, double>> leaveDetails = {};
+
+    final double annualRemaining = _toDouble(message['annual_leave']);
+    final double sickRemaining = _toDouble(message['sick_leave']);
+
+    debugPrint('📊 Annual Leave remaining: $annualRemaining');
+    debugPrint('📊 Sick Leave remaining: $sickRemaining');
+
+    if (message.containsKey('annual_leave')) {
+      leaveDetails['Annual Leave'] = {
+        'allocated': annualRemaining, // API only gives balance; use as allocated too
+        'taken': 0.0,
+        'remaining': annualRemaining,
+      };
+    }
+
+    if (message.containsKey('sick_leave')) {
+      leaveDetails['Sick Leave'] = {
+        'allocated': sickRemaining,
+        'taken': 0.0,
+        'remaining': sickRemaining,
+      };
+    }
+
+    final double totalRemaining = annualRemaining + sickRemaining;
+
+    return {
+      'success': true,
+      'employeeId': employeeId,
+      'leaveDetails': leaveDetails,
+      'totals': {
+        'allocated': totalRemaining,
+        'taken': 0.0,
+        'remaining': totalRemaining,
       }
-    }).toList();
+    };
   }
 
-  // Process API response - SUM values for same leave type
+  // Helper to safely convert int or double to double
+  double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  // Process OLD API response - SUM values for same leave type
   Map<String, dynamic> _processAPIResponse(List<dynamic> leaveData, String employeeId) {
     Map<String, Map<String, double>> leaveDetails = {};
     double totalAllocated = 0;
     double totalTaken = 0;
     double totalRemaining = 0;
 
-    debugPrint('🔄 Processing ${leaveData.length} filtered leave records...');
+    debugPrint('🔄 Processing ${leaveData.length} leave records...');
 
-    // First, group and sum by leave type
+    // Group and sum by leave type
     for (var item in leaveData) {
       final leaveType = _extractStringValue(item, ['leave_type', 'leaveType', 'type']) ?? 'Unknown Leave';
       final allocated = _extractDoubleValue(item, ['allocated', 'allocated_leaves']) ?? 0.0;

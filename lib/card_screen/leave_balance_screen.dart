@@ -1,5 +1,3 @@
-
-
 // ignore_for_file: unused_local_variable, unused_field
 
 import 'package:flutter/material.dart';
@@ -32,7 +30,6 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
   String? _employeeId;
   String? _employeeImage;
   bool _needsLogin = false;
-  int _currentYear = DateTime.now().year;
   
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -154,46 +151,53 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
     }
   }
 
+  /// Returns Annual Leave and Sick Leave cards based on API response keys.
   List<Map<String, dynamic>> get _leaveTypes {
     if (_leaveDetails.isEmpty) return [];
-    
-    return _leaveDetails.keys.map((key) {
-      final lowerKey = key.toLowerCase();
-      
-      if (lowerKey.contains('annual') || lowerKey.contains('earned') || lowerKey.contains('privilege')) {
-        return {
-          'key': key,
-          'title': key,
-          'icon': Icons.beach_access,
-          'gradient': const [Color(0xFF4158D0), Color(0xFFC850C0)],
-          'lightColor': const Color(0xFF4158D0).withOpacity(0.1),
-        };
-      } else if (lowerKey.contains('sick') || lowerKey.contains('medical')) {
-        return {
-          'key': key,
-          'title': key,
-          'icon': Icons.medical_services,
-          'gradient': const [Color(0xFFFFA726), Color(0xFFFF7043)],
-          'lightColor': const Color(0xFFFFA726).withOpacity(0.1),
-        };
-      } else if (lowerKey.contains('casual')) {
-        return {
-          'key': key,
-          'title': key,
-          'icon': Icons.free_breakfast,
-          'gradient': const [Color(0xFF42A5F5), Color(0xFF7E57C2)],
-          'lightColor': const Color(0xFF42A5F5).withOpacity(0.1),
-        };
-      } else {
-        return {
-          'key': key,
-          'title': key,
-          'icon': Icons.event_note,
-          'gradient': const [Color(0xFF757F9A), Color(0xFFD7DDE8)],
-          'lightColor': Colors.grey.withOpacity(0.1),
-        };
-      }
-    }).toList();
+
+    final List<Map<String, dynamic>> result = [];
+
+    // ── 1. Annual Leave ──────────────────────────────────────────────────────
+    final annualKey = _leaveDetails.keys.firstWhere(
+      (k) {
+        final lower = k.toLowerCase();
+        return lower.contains('annual') ||
+            lower.contains('earned') ||
+            lower.contains('privilege');
+      },
+      orElse: () => '',
+    );
+
+    if (annualKey.isNotEmpty) {
+      result.add({
+        'key': annualKey,
+        'title': 'Annual Leave',
+        'icon': Icons.beach_access,
+        'gradient': const [Color(0xFF4158D0), Color(0xFFC850C0)],
+        'lightColor': const Color(0xFF4158D0).withOpacity(0.1),
+      });
+    }
+
+    // ── 2. Sick Leave ────────────────────────────────────────────────────────
+    final sickKey = _leaveDetails.keys.firstWhere(
+      (k) {
+        final lower = k.toLowerCase();
+        return lower.contains('sick') || lower.contains('medical');
+      },
+      orElse: () => '',
+    );
+
+    if (sickKey.isNotEmpty) {
+      result.add({
+        'key': sickKey,
+        'title': 'Sick Leave',
+        'icon': Icons.medical_services,
+        'gradient': const [Color(0xFFFFA726), Color(0xFFFF7043)],
+        'lightColor': const Color(0xFFFFA726).withOpacity(0.1),
+      });
+    }
+
+    return result;
   }
 
   @override
@@ -353,11 +357,6 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
                           SizedBox(height: size.height * 0.02),
 
                           
-                          _buildYearSelector(isDark, size),
-
-                          SizedBox(height: size.height * 0.025),
-
-                          
                           if (!_isLoading && _errorMessage == null && !_needsLogin)
                             _buildStatsCards(isDark, size),
 
@@ -386,12 +385,6 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
                           
                           if (!_isLoading && _errorMessage == null && !_needsLogin && _leaveDetails.isEmpty)
                             _buildNoDataState(isDark, size),
-
-                          SizedBox(height: size.height * 0.02),
-
-                          
-                          if (!_isLoading && _errorMessage == null && !_needsLogin && _leaveDetails.isNotEmpty)
-                            _buildInfoCard(isDark, size),
 
                           SizedBox(height: padding.bottom + size.height * 0.02),
                         ]),
@@ -562,57 +555,6 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
     );
   }
 
-  Widget _buildYearSelector(bool isDark, Size size) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
-        vertical: size.height * 0.01,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[800] : Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Year $_currentYear',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.grey[800],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: size.width * 0.03,
-              vertical: size.height * 0.005,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'Current Year',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatsCards(bool isDark, Size size) {
     return Row(
       children: [
@@ -727,7 +669,7 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
             borderRadius: BorderRadius.circular(15),
           ),
           child: Text(
-            '${_leaveDetails.length} Types',
+            '${_leaveTypes.length} Types',
             style: TextStyle(
               fontSize: size.width * 0.03,
               color: Theme.of(context).primaryColor,
@@ -922,7 +864,6 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
-                       
                         backgroundColor: Colors.white.withOpacity(0.2),
                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                         minHeight: 4,
@@ -950,7 +891,7 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
   }
 
   Widget _buildLoadingState(bool isDark, Size size) {
-    return Container(
+    return SizedBox(
       height: size.height * 0.4,
       child: Center(
         child: Column(
@@ -1097,51 +1038,11 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
           ),
           SizedBox(height: size.height * 0.01),
           Text(
-            'You have no leave records for $_currentYear',
+            'No leave records found for your account.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: isDark ? Colors.grey[400] : Colors.grey[600],
               fontSize: size.width * 0.035,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(bool isDark, Size size) {
-    return Container(
-      padding: EdgeInsets.all(size.width * 0.04),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[800] : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(size.width * 0.02),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.info_rounded,
-              color: Theme.of(context).primaryColor,
-              size: size.width * 0.05,
-            ),
-          ),
-          SizedBox(width: size.width * 0.03),
-          Expanded(
-            child: Text(
-              'Leave balances shown are for the current year ($_currentYear) only.',
-              style: TextStyle(
-                fontSize: size.width * 0.03,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-                height: 1.4,
-              ),
             ),
           ),
         ],
@@ -1256,7 +1157,7 @@ class _LeaveBalanceScreenState extends State<LeaveBalanceScreen>
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(3),
                                 child: LinearProgressIndicator(
-                                 value: (allocated > 0 ? (taken / allocated) : 0.0).toDouble().clamp(0.0, 1.0),
+                                  value: (allocated > 0 ? (taken / allocated) : 0.0).toDouble().clamp(0.0, 1.0),
                                   backgroundColor: Colors.grey[300],
                                   valueColor: AlwaysStoppedAnimation<Color>(color),
                                   minHeight: 6,
