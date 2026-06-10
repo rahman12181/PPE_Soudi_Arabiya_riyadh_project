@@ -16,13 +16,9 @@ class PunchProvider extends ChangeNotifier {
 
   static final DateFormat _storageFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
-  /// ✅ Returns current Riyadh time as a PLAIN DateTime
-  /// (same "kind" as _punchInTime which is also plain/no-timezone)
-  /// This ensures difference() calculation is always correct.
   DateTime _riyadhNow() {
     final utcNow = DateTime.now().toUtc();
     final riyadhNow = utcNow.add(const Duration(hours: 3));
-    // Re-parse through format to strip UTC flag → plain datetime
     return _storageFormat.parse(_storageFormat.format(riyadhNow), false);
   }
 
@@ -167,8 +163,7 @@ class PunchProvider extends ChangeNotifier {
 
   String totalHours() {
     if (_punchInTime == null) return "00:00";
-    // ✅ _riyadhNow() returns same "kind" of plain DateTime as _punchInTime
-    // So difference() is always correct — no 3hr offset bug
+    
     final end = _punchOutTime ?? _riyadhNow();
     final diff = end.difference(_punchInTime!);
     return "${diff.inHours.toString().padLeft(2, '0')}:${(diff.inMinutes % 60).toString().padLeft(2, '0')}";
@@ -176,8 +171,8 @@ class PunchProvider extends ChangeNotifier {
 
   double progressValue() {
     if (_punchInTime == null) return 0;
-    final end = _punchOutTime ?? _riyadhNow(); // ✅
-    return (end.difference(_punchInTime!).inSeconds / (12 * 60 * 60))
+    final end = _punchOutTime ?? _riyadhNow(); 
+    return (end.difference(_punchInTime!).inSeconds / (8 * 60 * 60))
         .clamp(0.0, 1.0);
   }
 
