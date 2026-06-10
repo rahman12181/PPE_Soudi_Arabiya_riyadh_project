@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:management_app/services/intercepted_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -11,7 +12,7 @@ class AuthService {
   static const String baseUrl = "https://ppecon.erpnext.com";
 
   static List<String> cookies = [];
-  static Client client = Client();
+  static Client client = InterceptedClient(Client());
   static const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
   // ================= COOKIE MANAGEMENT =================
@@ -121,7 +122,7 @@ class AuthService {
   }
 
   // ================= AUTO RELOGIN =================
-  static Future<bool> _autoRelogin() async {
+  static Future<bool> autoRelogin() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString("email");
     final password = await secureStorage.read(key: "password");
@@ -140,7 +141,7 @@ class AuthService {
     http.Response response = await requestFunction();
 
     if (response.statusCode == 401) {
-      final reloginSuccess = await _autoRelogin();
+      final reloginSuccess = await autoRelogin();
       if (reloginSuccess) {
         response = await requestFunction();
       }

@@ -25,15 +25,21 @@ import 'package:management_app/screen/setting_screen.dart';
 import 'package:management_app/screen/splash_screen.dart';
 import 'package:management_app/screen/travel_request_screen.dart';
 import 'package:management_app/services/auth_service.dart';
+import 'package:management_app/services/navigation_service.dart'; // ✅ Yeh sahi path hai
 import 'package:management_app/utils/systembars_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:quick_actions/quick_actions.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  // App open hote hi session silently check aur fix karo
+  await _initSession();
 
   await AuthService.loadCookies();
 
@@ -51,6 +57,46 @@ void main() async {
   );
 }
 
+Future<void> _initSession() async {
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
+
+  if (!isLoggedIn) return;
+  await AuthService.loadCookies();
+  final isValid = await _checkSessionValid();
+
+  if (!isValid) {
+    debugPrint("silent relogin happen because session expired during app open");
+
+    final success = await AuthService.autoRelogin();
+
+    if (success) {
+      debugPrint("silent relogin succcessful");
+    } else {
+      // Credentials nahi mile ya wrong — isLoggedIn false karo
+      debugPrint("silent relogin failed — clearing session and logging out");
+      await prefs.setBool("isLoggedIn", false);
+    }
+  } else {
+    debugPrint("valid session detected on app open — no relogin needed");
+  }
+}
+
+Future<bool> _checkSessionValid() async {
+  try {
+    final auth = AuthService();
+    final response = await http.get(
+      Uri.parse(
+        "${AuthService.baseUrl}/api/method/frappe.auth.get_logged_user",
+      ),
+      headers: auth.buildHeaders(),
+    );
+    return response.statusCode == 200;
+  } catch (e) {
+    return true;
+  }
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -59,8 +105,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-
   @override
   void initState() {
     super.initState();
@@ -78,26 +122,25 @@ class _MyAppState extends State<MyApp> {
 
     quickActions.initialize((String shortcutType) {
       if (shortcutType == 'home') {
-        _navigatorKey.currentState?.pushNamed('/homeMainScreen');
+        NavigationService.navigatorKey.currentState?.pushNamed('/homeMainScreen');
       } else if (shortcutType == 'attendance') {
-        _navigatorKey.currentState?.pushNamed('/attendanceScreen');
+        NavigationService.navigatorKey.currentState?.pushNamed('/attendanceScreen');
       } else if (shortcutType == 'leave_balance') {
-        _navigatorKey.currentState?.pushNamed('/leaveBalaneceScreen');
+        NavigationService.navigatorKey.currentState?.pushNamed('/leaveBalaneceScreen');
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    //  ValueListenableBuilder - themeNotifier change hone par MaterialApp rebuild hoga
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (context, currentTheme, _) {
         return MaterialApp(
-          navigatorKey: _navigatorKey,
+          navigatorKey: NavigationService.navigatorKey, 
           debugShowCheckedModeBanner: false,
           title: 'Pioneer',
-          themeMode: currentTheme, 
+          themeMode: currentTheme,
           theme: ThemeData(
             useMaterial3: false,
             fontFamily: 'poppins',
@@ -151,7 +194,7 @@ class _MyAppState extends State<MyApp> {
               bodySmall: TextStyle(color: Colors.white60),
             ),
             iconTheme: const IconThemeData(color: Colors.white),
-            cardColor: const Color(0xFF1E1E1E),
+            cardColor: Color(0xFF1E1E1E),
             dividerColor: Colors.white24,
             colorScheme: const ColorScheme.dark(
               primary: Color(0xFF90CAF9),
