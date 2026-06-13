@@ -267,9 +267,9 @@ class _ProfileScreenState extends State<Profilescreen>
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: gradientColors.first,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
         systemNavigationBarIconBrightness: isDarkMode
             ? Brightness.light
@@ -277,10 +277,17 @@ class _ProfileScreenState extends State<Profilescreen>
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
-        body: SafeArea(
-          top: true,
-          bottom: true,
-          child: RefreshIndicator(
+        body: Stack(
+          children: [
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: gradientColors.first,
+            ),
+            SafeArea(
+              top: true,
+              bottom: true,
+              child: RefreshIndicator(
             onRefresh: _refreshProfile,
             color: skyBlue,
             backgroundColor: cardColor,
@@ -444,6 +451,8 @@ class _ProfileScreenState extends State<Profilescreen>
               ],
             ),
           ),
+            ),
+          ],
         ),
       ),
     );

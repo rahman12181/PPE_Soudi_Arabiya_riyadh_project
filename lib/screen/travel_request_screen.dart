@@ -632,6 +632,9 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
     final shadowColor = isDarkMode
         ? Colors.black.withOpacity(0.5)
         : skyBlue.withOpacity(0.1);
+    
+    // Status bar color based on theme
+    final statusBarColor = isDarkMode ? charcoal : skyBlue;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
@@ -639,6 +642,7 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
         statusBarIconBrightness: isDarkMode
             ? Brightness.light
             : Brightness.dark,
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
         systemNavigationBarIconBrightness: isDarkMode
             ? Brightness.light
@@ -646,151 +650,418 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
-        body: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Stack(
-              children: [
-                SafeArea(
-                  bottom: false,
-                  child: Container(
-                    color: backgroundColor,
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Container(
-                        color: backgroundColor,
-                        width: width,
-                        child: Transform.translate(
-                          offset: Offset(0, _slideAnimation.value),
-                          child: Opacity(
-                            opacity: _fadeAnimation.value,
-                            child: Column(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: width * 0.04,
-                                    vertical: height * 0.02,
+        body: Stack(
+          children: [
+            // Status bar background - changes with theme
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: statusBarColor,
+            ),
+            SafeArea(
+              top: true,
+              bottom: true,
+              child: AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Container(
+                      color: backgroundColor,
+                      width: width,
+                      child: Transform.translate(
+                        offset: Offset(0, _slideAnimation.value),
+                        child: Opacity(
+                          opacity: _fadeAnimation.value,
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: width * 0.04,
+                                  vertical: height * 0.02,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isDarkMode 
+                                        ? [charcoal, slate, const Color(0xFF1E1E2E)]
+                                        : [skyBlue, deepSky],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [skyBlue, deepSky],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(width * 0.08),
+                                    bottomRight: Radius.circular(
+                                      width * 0.08,
                                     ),
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(width * 0.08),
-                                      bottomRight: Radius.circular(
-                                        width * 0.08,
-                                      ),
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: shadowColor,
-                                        blurRadius: 20,
-                                        spreadRadius: 1,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
                                   ),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          IconButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            icon: Icon(
-                                              Icons.arrow_back_rounded,
-                                              color: Colors.white,
-                                              size: width * 0.06,
-                                            ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: shadowColor,
+                                      blurRadius: 20,
+                                      spreadRadius: 1,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          icon: Icon(
+                                            Icons.arrow_back_rounded,
+                                            color: Colors.white,
+                                            size: width * 0.06,
                                           ),
-                                          Text(
-                                            "Travel Request",
-                                            style: TextStyle(
-                                              fontSize: width * 0.05,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                              letterSpacing: 0.5,
-                                            ),
+                                        ),
+                                        Text(
+                                          "Travel Request",
+                                          style: TextStyle(
+                                            fontSize: width * 0.05,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            letterSpacing: 0.5,
                                           ),
-
-                                          PopupMenuButton<String>(
-                                            icon: Container(
-                                              padding: EdgeInsets.all(
-                                                width * 0.02,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withOpacity(
-                                                  0.2,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      width * 0.03,
-                                                    ),
-                                                border: Border.all(
-                                                  color: Colors.white
-                                                      .withOpacity(0.3),
-                                                  width: 1.5,
-                                                ),
-                                              ),
-                                              child: Icon(
-                                                Icons.more_horiz_rounded,
-                                                color: Colors.white,
-                                                size: width * 0.05,
-                                              ),
+                                        ),
+                                        PopupMenuButton<String>(
+                                          icon: Container(
+                                            padding: EdgeInsets.all(
+                                              width * 0.02,
                                             ),
-                                            shape: RoundedRectangleBorder(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(
+                                                0.2,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(
-                                                    width * 0.04,
+                                                    width * 0.03,
                                                   ),
+                                              border: Border.all(
+                                                color: Colors.white
+                                                    .withOpacity(0.3),
+                                                width: 1.5,
+                                              ),
                                             ),
-                                            color: cardColor,
-                                            elevation: 8,
-                                            offset: Offset(0, height * 0.01),
-                                            onSelected: (value) {
-                                              HapticFeedback.mediumImpact();
-                                              if (value == 'two_way') {
-                                                _navigateToTwoWayTravel();
-                                              }
-                                            },
-                                            itemBuilder: (context) => [
-                                              PopupMenuItem(
-                                                value: 'two_way',
-                                                height: height * 0.06,
-                                                child: Row(
-                                                  children: [
-                                                    Container(
-                                                      padding: EdgeInsets.all(
-                                                        width * 0.02,
+                                            child: Icon(
+                                              Icons.more_horiz_rounded,
+                                              color: Colors.white,
+                                              size: width * 0.05,
+                                            ),
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(
+                                                  width * 0.04,
+                                                ),
+                                          ),
+                                          color: cardColor,
+                                          elevation: 8,
+                                          offset: Offset(0, height * 0.01),
+                                          onSelected: (value) {
+                                            HapticFeedback.mediumImpact();
+                                            if (value == 'two_way') {
+                                              _navigateToTwoWayTravel();
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                              value: 'two_way',
+                                              height: height * 0.06,
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    padding: EdgeInsets.all(
+                                                      width * 0.02,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          skyBlue.withOpacity(
+                                                            0.2,
+                                                          ),
+                                                          deepSky.withOpacity(
+                                                            0.1,
+                                                          ),
+                                                        ],
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end: Alignment
+                                                            .bottomRight,
                                                       ),
-                                                      decoration: BoxDecoration(
-                                                        gradient: LinearGradient(
-                                                          colors: [
-                                                            skyBlue.withOpacity(
-                                                              0.2,
-                                                            ),
-                                                            deepSky.withOpacity(
-                                                              0.1,
-                                                            ),
-                                                          ],
-                                                          begin:
-                                                              Alignment.topLeft,
-                                                          end: Alignment
-                                                              .bottomRight,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            width * 0.02,
+                                                          ),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.sync_alt_rounded,
+                                                      size: width * 0.05,
+                                                      color: skyBlue,
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    width: width * 0.03,
+                                                  ),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          'Two-Way Travel',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                width * 0.04,
+                                                            color: textColor,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w600,
+                                                          ),
                                                         ),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              width * 0.02,
+                                                        Text(
+                                                          'Round trip with return',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                width * 0.03,
+                                                            color:
+                                                                subtitleColor,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w400,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Icon(
+                                                    Icons
+                                                        .arrow_forward_ios_rounded,
+                                                    size: width * 0.035,
+                                                    color: subtitleColor
+                                                        ?.withOpacity(0.5),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const PopupMenuDivider(),
+                                            PopupMenuItem(
+                                              enabled: false,
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons
+                                                        .info_outline_rounded,
+                                                    size: width * 0.04,
+                                                    color: subtitleColor
+                                                        ?.withOpacity(0.7),
+                                                  ),
+                                                  SizedBox(
+                                                    width: width * 0.02,
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Switch to round trip',
+                                                      style: TextStyle(
+                                                        fontSize:
+                                                            width * 0.03,
+                                                        color: subtitleColor
+                                                            ?.withOpacity(
+                                                              0.7,
                                                             ),
+                                                        fontStyle:
+                                                            FontStyle.italic,
                                                       ),
-                                                      child: Icon(
-                                                        Icons.sync_alt_rounded,
-                                                        size: width * 0.05,
-                                                        color: skyBlue,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: height * 0.01),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: width * 0.04,
+                                        vertical: height * 0.015,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(
+                                          width * 0.03,
+                                        ),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(
+                                            0.2,
+                                          ),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.flight_takeoff,
+                                            color: Colors.white,
+                                            size: width * 0.06,
+                                          ),
+                                          SizedBox(width: width * 0.03),
+                                          Expanded(
+                                            child: Text(
+                                              "One-way travel request. Tap menu for two-way.",
+                                              style: TextStyle(
+                                                fontSize: width * 0.04,
+                                                color: Colors.white
+                                                    .withOpacity(0.9),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                color: backgroundColor,
+                                child: Card(
+                                  elevation: 0,
+                                  margin: EdgeInsets.all(width * 0.04),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      width * 0.05,
+                                    ),
+                                    side: BorderSide(
+                                      color: skyBlue.withOpacity(0.2),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  color: cardColor,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(width * 0.04),
+                                    child: _isLoadingDropdowns
+                                        ? _buildLoadingShimmer()
+                                        : Form(
+                                            key: _formKey,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _buildSelectionChips(
+                                                  "Travel Type",
+                                                  travelType,
+                                                  travelTypes,
+                                                  (value) => setState(
+                                                    () => travelType = value,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: height * 0.025,
+                                                ),
+                                                fundingTypes.isEmpty
+                                                    ? const Center(
+                                                        child: Text(
+                                                          "No funding types available",
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : _buildSelectionChips(
+                                                        "Travel Funding",
+                                                        travelFunding,
+                                                        fundingTypes,
+                                                        (value) => setState(
+                                                          () =>
+                                                              travelFunding =
+                                                                  value,
+                                                        ),
+                                                      ),
+                                                SizedBox(
+                                                  height: height * 0.025,
+                                                ),
+                                                purposeTypes.isEmpty
+                                                    ? const Center(
+                                                        child: Text(
+                                                          "No purpose types available",
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : _buildSelectionChips(
+                                                        "Purpose of Travel",
+                                                        purpose,
+                                                        purposeTypes,
+                                                        (value) => setState(
+                                                          () =>
+                                                              purpose = value,
+                                                        ),
+                                                      ),
+                                                SizedBox(
+                                                  height: height * 0.025,
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            "From Location",
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  width *
+                                                                    0.04,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  textColor,
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            height:
+                                                                height * 0.01,
+                                                          ),
+                                                          TextFormField(
+                                                            controller:
+                                                                fromCtrl,
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  width *
+                                                                    0.04,
+                                                              color:
+                                                                  textColor,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                            decoration: _inputDecoration(
+                                                              "City, Country",
+                                                              icon: Icons
+                                                                  .location_on,
+                                                            ),
+                                                            validator: (v) =>
+                                                                v!.isEmpty
+                                                                ? "Required"
+                                                                : null,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                     SizedBox(
@@ -801,607 +1072,324 @@ class _TravelRequestScreenState extends State<TravelRequestScreen>
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
                                                                 .start,
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
                                                         children: [
                                                           Text(
-                                                            'Two-Way Travel',
+                                                            "To Location",
                                                             style: TextStyle(
                                                               fontSize:
-                                                                  width * 0.04,
-                                                              color: textColor,
+                                                                  width *
+                                                                    0.04,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
+                                                              color:
+                                                                  textColor,
                                                             ),
                                                           ),
-                                                          Text(
-                                                            'Round trip with return',
+                                                          SizedBox(
+                                                            height:
+                                                                height * 0.01,
+                                                          ),
+                                                          TextFormField(
+                                                            controller:
+                                                                toCtrl,
                                                             style: TextStyle(
                                                               fontSize:
-                                                                  width * 0.03,
+                                                                  width *
+                                                                    0.04,
                                                               color:
-                                                                  subtitleColor,
+                                                                  textColor,
                                                               fontWeight:
                                                                   FontWeight
-                                                                      .w400,
+                                                                      .w500,
                                                             ),
-                                                            maxLines: 1,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
+                                                            decoration:
+                                                                _inputDecoration(
+                                                                  "City, Country",
+                                                                  icon: Icons
+                                                                      .flag,
+                                                                ),
+                                                            validator: (v) =>
+                                                                v!.isEmpty
+                                                                ? "Required"
+                                                                : null,
                                                           ),
                                                         ],
                                                       ),
                                                     ),
-
-                                                    Icon(
-                                                      Icons
-                                                          .arrow_forward_ios_rounded,
-                                                      size: width * 0.035,
-                                                      color: subtitleColor
-                                                          ?.withOpacity(0.5),
-                                                    ),
                                                   ],
                                                 ),
-                                              ),
-
-                                              const PopupMenuDivider(),
-
-                                              PopupMenuItem(
-                                                enabled: false,
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons
-                                                          .info_outline_rounded,
-                                                      size: width * 0.04,
-                                                      color: subtitleColor
-                                                          ?.withOpacity(0.7),
+                                                SizedBox(
+                                                  height: height * 0.025,
+                                                ),
+                                                _buildSelectionChips(
+                                                  "Mode of Travel",
+                                                  mode,
+                                                  travelModes,
+                                                  (value) => setState(
+                                                    () => mode = value,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: height * 0.025,
+                                                ),
+                                                Text(
+                                                  "Departure Date",
+                                                  style: TextStyle(
+                                                    fontSize: width * 0.04,
+                                                    fontWeight:
+                                                        FontWeight.w600,
+                                                    color: textColor,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: height * 0.01,
+                                                ),
+                                                TextFormField(
+                                                  controller: dateCtrl,
+                                                  readOnly: true,
+                                                  onTap: pickDate,
+                                                  style: TextStyle(
+                                                    fontSize: width * 0.04,
+                                                    color: textColor,
+                                                    fontWeight:
+                                                        FontWeight.w500,
+                                                  ),
+                                                  decoration: _inputDecoration(
+                                                    "Select departure date",
+                                                    icon:
+                                                        Icons.calendar_month,
+                                                  ),
+                                                  validator: (v) => v!.isEmpty
+                                                      ? "Required"
+                                                      : null,
+                                                ),
+                                                SizedBox(
+                                                  height: height * 0.025,
+                                                ),
+                                                Text(
+                                                  "Additional Details",
+                                                  style: TextStyle(
+                                                    fontSize: width * 0.04,
+                                                    fontWeight:
+                                                        FontWeight.w600,
+                                                    color: textColor,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: height * 0.01,
+                                                ),
+                                                TextFormField(
+                                                  controller: descCtrl,
+                                                  style: TextStyle(
+                                                    fontSize: width * 0.04,
+                                                    color: textColor,
+                                                    fontWeight:
+                                                        FontWeight.w500,
+                                                  ),
+                                                  maxLines: 4,
+                                                  minLines: 3,
+                                                  decoration: _inputDecoration(
+                                                    "Enter any additional details or requirements...",
+                                                    icon: Icons.notes,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: height * 0.04,
+                                                ),
+                                                SizedBox(
+                                                  width: double.infinity,
+                                                  height: height * 0.065,
+                                                  child: ElevatedButton(
+                                                    onPressed:
+                                                        (isLoading ||
+                                                            _isLoadingDropdowns)
+                                                        ? null
+                                                        : submit,
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor:
+                                                          skyBlue,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              width * 0.035,
+                                                            ),
+                                                      ),
+                                                      elevation: 0,
+                                                      shadowColor:
+                                                          Colors.transparent,
                                                     ),
-                                                    SizedBox(
-                                                      width: width * 0.02,
-                                                    ),
-                                                    Expanded(
-                                                      child: Text(
-                                                        'Switch to round trip',
-                                                        style: TextStyle(
-                                                          fontSize:
-                                                              width * 0.03,
-                                                          color: subtitleColor
-                                                              ?.withOpacity(
-                                                                0.7,
+                                                    child: Stack(
+                                                      alignment:
+                                                          Alignment.center,
+                                                      children: [
+                                                        AnimatedOpacity(
+                                                          opacity: isLoading
+                                                              ? 0
+                                                              : 1,
+                                                          duration:
+                                                              const Duration(
+                                                                milliseconds:
+                                                                    200,
                                                               ),
-                                                          fontStyle:
-                                                              FontStyle.italic,
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .flight_takeoff_rounded,
+                                                                size:
+                                                                    width *
+                                                                    0.05,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                              SizedBox(
+                                                                width:
+                                                                    width *
+                                                                    0.02,
+                                                              ),
+                                                              Text(
+                                                                "Submit Travel Request",
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      width *
+                                                                      0.04,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  letterSpacing:
+                                                                      0.5,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
                                                         ),
+                                                        if (isLoading)
+                                                          SizedBox(
+                                                            width:
+                                                                width * 0.06,
+                                                            height:
+                                                                width * 0.06,
+                                                            child: CircularProgressIndicator(
+                                                              strokeWidth: 3,
+                                                              color: Colors
+                                                                  .white,
+                                                              backgroundColor:
+                                                                  Colors.white
+                                                                      .withOpacity(
+                                                                        0.3,
+                                                                      ),
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: height * 0.02,
+                                                ),
+                                                SizedBox(
+                                                  width: double.infinity,
+                                                  height: height * 0.055,
+                                                  child: TextButton(
+                                                    onPressed: isLoading
+                                                        ? null
+                                                        : () {
+                                                            HapticFeedback.lightImpact();
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                          },
+                                                    style: TextButton.styleFrom(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              width * 0.035,
+                                                            ),
+                                                      ),
+                                                      foregroundColor:
+                                                          subtitleColor,
+                                                    ),
+                                                    child: Text(
+                                                      "Cancel",
+                                                      style: TextStyle(
+                                                        fontSize:
+                                                            width * 0.04,
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
                                                     ),
-                                                  ],
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: height * 0.01),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: width * 0.04,
-                                          vertical: height * 0.015,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            width * 0.03,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(
-                                              0.2,
-                                            ),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.flight_takeoff,
-                                              color: Colors.white,
-                                              size: width * 0.06,
-                                            ),
-                                            SizedBox(width: width * 0.03),
-                                            Expanded(
-                                              child: Text(
-                                                "One-way travel request. Tap menu for two-way.",
-                                                style: TextStyle(
-                                                  fontSize: width * 0.04,
-                                                  color: Colors.white
-                                                      .withOpacity(0.9),
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                Container(
-                                  color: backgroundColor,
-                                  child: Card(
-                                    elevation: 0,
-                                    margin: EdgeInsets.all(width * 0.04),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        width * 0.05,
-                                      ),
-                                      side: BorderSide(
-                                        color: skyBlue.withOpacity(0.2),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    color: cardColor,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(width * 0.04),
-                                      child: _isLoadingDropdowns
-                                          ? _buildLoadingShimmer()
-                                          : Form(
-                                              key: _formKey,
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  _buildSelectionChips(
-                                                    "Travel Type",
-                                                    travelType,
-                                                    travelTypes,
-                                                    (value) => setState(
-                                                      () => travelType = value,
+                                                Container(
+                                                  width: double.infinity,
+                                                  padding: EdgeInsets.all(
+                                                    width * 0.04,
+                                                  ),
+                                                  margin: EdgeInsets.only(
+                                                    top: height * 0.02,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: skyBlue
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          width * 0.03,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: skyBlue
+                                                          .withOpacity(0.2),
+                                                      width: 1.5,
                                                     ),
                                                   ),
-
-                                                  SizedBox(
-                                                    height: height * 0.025,
-                                                  ),
-
-                                                  fundingTypes.isEmpty
-                                                      ? const Center(
-                                                          child: Text(
-                                                            "No funding types available",
-                                                            style: TextStyle(
-                                                              color: Colors.red,
-                                                            ),
-                                                          ),
-                                                        )
-                                                      : _buildSelectionChips(
-                                                          "Travel Funding",
-                                                          travelFunding,
-                                                          fundingTypes,
-                                                          (value) => setState(
-                                                            () =>
-                                                                travelFunding =
-                                                                    value,
-                                                          ),
-                                                        ),
-
-                                                  SizedBox(
-                                                    height: height * 0.025,
-                                                  ),
-
-                                                  purposeTypes.isEmpty
-                                                      ? const Center(
-                                                          child: Text(
-                                                            "No purpose types available",
-                                                            style: TextStyle(
-                                                              color: Colors.red,
-                                                            ),
-                                                          ),
-                                                        )
-                                                      : _buildSelectionChips(
-                                                          "Purpose of Travel",
-                                                          purpose,
-                                                          purposeTypes,
-                                                          (value) => setState(
-                                                            () =>
-                                                                purpose = value,
-                                                          ),
-                                                        ),
-
-                                                  SizedBox(
-                                                    height: height * 0.025,
-                                                  ),
-
-                                                  Row(
+                                                  child: Row(
                                                     children: [
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              "From Location",
-                                                              style: TextStyle(
-                                                                fontSize:
-                                                                    width *
-                                                                    0.04,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color:
-                                                                    textColor,
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height:
-                                                                  height * 0.01,
-                                                            ),
-                                                            TextFormField(
-                                                              controller:
-                                                                  fromCtrl,
-                                                              style: TextStyle(
-                                                                fontSize:
-                                                                    width *
-                                                                    0.04,
-                                                                color:
-                                                                    textColor,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                              ),
-                                                              decoration: _inputDecoration(
-                                                                "City, Country",
-                                                                icon: Icons
-                                                                    .location_on,
-                                                              ),
-                                                              validator: (v) =>
-                                                                  v!.isEmpty
-                                                                  ? "Required"
-                                                                  : null,
-                                                            ),
-                                                          ],
-                                                        ),
+                                                      Icon(
+                                                        Icons
+                                                            .info_outline_rounded,
+                                                        size: width * 0.05,
+                                                        color: skyBlue,
                                                       ),
                                                       SizedBox(
                                                         width: width * 0.03,
                                                       ),
                                                       Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              "To Location",
-                                                              style: TextStyle(
-                                                                fontSize:
-                                                                    width *
-                                                                    0.04,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color:
-                                                                    textColor,
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height:
-                                                                  height * 0.01,
-                                                            ),
-                                                            TextFormField(
-                                                              controller:
-                                                                  toCtrl,
-                                                              style: TextStyle(
-                                                                fontSize:
-                                                                    width *
-                                                                    0.04,
-                                                                color:
-                                                                    textColor,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                              ),
-                                                              decoration:
-                                                                  _inputDecoration(
-                                                                    "City, Country",
-                                                                    icon: Icons
-                                                                        .flag,
-                                                                  ),
-                                                              validator: (v) =>
-                                                                  v!.isEmpty
-                                                                  ? "Required"
-                                                                  : null,
-                                                            ),
-                                                          ],
+                                                        child: Text(
+                                                          "Your travel request will be reviewed by the management team",
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                width * 0.035,
+                                                            color: textColor,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
                                                   ),
-
-                                                  SizedBox(
-                                                    height: height * 0.025,
-                                                  ),
-
-                                                  _buildSelectionChips(
-                                                    "Mode of Travel",
-                                                    mode,
-                                                    travelModes,
-                                                    (value) => setState(
-                                                      () => mode = value,
-                                                    ),
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: height * 0.025,
-                                                  ),
-
-                                                  Text(
-                                                    "Departure Date",
-                                                    style: TextStyle(
-                                                      fontSize: width * 0.04,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: textColor,
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    height: height * 0.01,
-                                                  ),
-                                                  TextFormField(
-                                                    controller: dateCtrl,
-                                                    readOnly: true,
-                                                    onTap: pickDate,
-                                                    style: TextStyle(
-                                                      fontSize: width * 0.04,
-                                                      color: textColor,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                    decoration: _inputDecoration(
-                                                      "Select departure date",
-                                                      icon:
-                                                          Icons.calendar_month,
-                                                    ),
-                                                    validator: (v) => v!.isEmpty
-                                                        ? "Required"
-                                                        : null,
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: height * 0.025,
-                                                  ),
-
-                                                  Text(
-                                                    "Additional Details",
-                                                    style: TextStyle(
-                                                      fontSize: width * 0.04,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: textColor,
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    height: height * 0.01,
-                                                  ),
-                                                  TextFormField(
-                                                    controller: descCtrl,
-                                                    style: TextStyle(
-                                                      fontSize: width * 0.04,
-                                                      color: textColor,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                    maxLines: 4,
-                                                    minLines: 3,
-                                                    decoration: _inputDecoration(
-                                                      "Enter any additional details or requirements...",
-                                                      icon: Icons.notes,
-                                                    ),
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: height * 0.04,
-                                                  ),
-
-                                                  SizedBox(
-                                                    width: double.infinity,
-                                                    height: height * 0.065,
-                                                    child: ElevatedButton(
-                                                      onPressed:
-                                                          (isLoading ||
-                                                              _isLoadingDropdowns)
-                                                          ? null
-                                                          : submit,
-                                                      style: ElevatedButton.styleFrom(
-                                                        backgroundColor:
-                                                            skyBlue,
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                width * 0.035,
-                                                              ),
-                                                        ),
-                                                        elevation: 0,
-                                                        shadowColor:
-                                                            Colors.transparent,
-                                                      ),
-                                                      child: Stack(
-                                                        alignment:
-                                                            Alignment.center,
-                                                        children: [
-                                                          AnimatedOpacity(
-                                                            opacity: isLoading
-                                                                ? 0
-                                                                : 1,
-                                                            duration:
-                                                                const Duration(
-                                                                  milliseconds:
-                                                                      200,
-                                                                ),
-                                                            child: Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                Icon(
-                                                                  Icons
-                                                                      .flight_takeoff_rounded,
-                                                                  size:
-                                                                      width *
-                                                                      0.05,
-                                                                  color: Colors
-                                                                      .white,
-                                                                ),
-                                                                SizedBox(
-                                                                  width:
-                                                                      width *
-                                                                      0.02,
-                                                                ),
-                                                                Text(
-                                                                  "Submit Travel Request",
-                                                                  style: TextStyle(
-                                                                    fontSize:
-                                                                        width *
-                                                                        0.04,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w700,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    letterSpacing:
-                                                                        0.5,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          if (isLoading)
-                                                            SizedBox(
-                                                              width:
-                                                                  width * 0.06,
-                                                              height:
-                                                                  width * 0.06,
-                                                              child: CircularProgressIndicator(
-                                                                strokeWidth: 3,
-                                                                color: Colors
-                                                                    .white,
-                                                                backgroundColor:
-                                                                    Colors.white
-                                                                        .withOpacity(
-                                                                          0.3,
-                                                                        ),
-                                                              ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: height * 0.02,
-                                                  ),
-
-                                                  SizedBox(
-                                                    width: double.infinity,
-                                                    height: height * 0.055,
-                                                    child: TextButton(
-                                                      onPressed: isLoading
-                                                          ? null
-                                                          : () {
-                                                              HapticFeedback.lightImpact();
-                                                              Navigator.pop(
-                                                                context,
-                                                              );
-                                                            },
-                                                      style: TextButton.styleFrom(
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                width * 0.035,
-                                                              ),
-                                                        ),
-                                                        foregroundColor:
-                                                            subtitleColor,
-                                                      ),
-                                                      child: Text(
-                                                        "Cancel",
-                                                        style: TextStyle(
-                                                          fontSize:
-                                                              width * 0.04,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-
-                                                  Container(
-                                                    width: double.infinity,
-                                                    padding: EdgeInsets.all(
-                                                      width * 0.04,
-                                                    ),
-                                                    margin: EdgeInsets.only(
-                                                      top: height * 0.02,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: skyBlue
-                                                          .withOpacity(0.1),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            width * 0.03,
-                                                          ),
-                                                      border: Border.all(
-                                                        color: skyBlue
-                                                            .withOpacity(0.2),
-                                                        width: 1.5,
-                                                      ),
-                                                    ),
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons
-                                                              .info_outline_rounded,
-                                                          size: width * 0.05,
-                                                          color: skyBlue,
-                                                        ),
-                                                        SizedBox(
-                                                          width: width * 0.03,
-                                                        ),
-                                                        Expanded(
-                                                          child: Text(
-                                                            "Your travel request will be reviewed by the management team",
-                                                            style: TextStyle(
-                                                              fontSize:
-                                                                  width * 0.035,
-                                                              color: textColor,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
+                                                ),
+                                              ],
                                             ),
+                                          ),
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

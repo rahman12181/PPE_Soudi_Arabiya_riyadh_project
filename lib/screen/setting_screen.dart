@@ -56,9 +56,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: gradientColors.first,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
         systemNavigationBarIconBrightness: isDarkMode
             ? Brightness.light
@@ -66,308 +66,279 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
-        body: SafeArea(
-          top: true,
-          bottom: true,
-          child: Consumer<ProfileProvider>(
-            builder: (context, provider, _) {
-              final user = provider.profileData;
+        body: Stack(
+          children: [
+            // Status bar color matching gradient
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: gradientColors.first,
+            ),
+            SafeArea(
+              top: true,
+              bottom: true,
+              child: Consumer<ProfileProvider>(
+                builder: (context, provider, _) {
+                  final user = provider.profileData;
 
-              return Column(
-                children: [
-                  // Premium Header with Sky Blue Gradient
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.05,
-                      vertical: screenHeight * 0.015,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: gradientColors,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(30),
-                        bottomRight: Radius.circular(30),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: skyBlue.withOpacity(0.3),
-                          blurRadius: 25,
-                          spreadRadius: 5,
-                          offset: const Offset(0, 8),
+                  return Column(
+                    children: [
+                      // Premium Header with Sky Blue Gradient
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.05,
+                          vertical: screenHeight * 0.015,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Settings",
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.06,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: gradientColors,
+                          ),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: skyBlue.withOpacity(0.3),
+                              blurRadius: 25,
+                              spreadRadius: 5,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Settings",
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.06,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 10,
+                                  ),
+                                ],
                               ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.white.withOpacity(0.2),
+                                    Colors.white.withOpacity(0.1),
+                                  ],
+                                ),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.logout_rounded,
+                                  color: Colors.white,
+                                  size: screenWidth * 0.06,
+                                ),
+                                onPressed: () => _showLogoutDialog(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Scrollable content
+                      Expanded(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.045,
+                            vertical: screenHeight * 0.025,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Premium Profile Section with Sky Blue Theme
+                              _buildPremiumProfileSection(
+                                context,
+                                user,
+                                screenWidth,
+                                screenHeight,
+                                isDarkMode,
+                                textColor,
+                                subtitleColor,
+                                gradientColors,
+                              ),
+
+                              SizedBox(height: screenHeight * 0.03),
+
+                              // Account Settings
+                              _buildPremiumSectionTitle(
+                                "Account Settings",
+                                Icons.settings_rounded,
+                                gradientColors,
+                                screenWidth,
+                              ),
+                              SizedBox(height: screenHeight * 0.015),
+
+                              _buildPremiumSettingTile(
+                                icon: Icons.person_outline_rounded,
+                                title: "User Profile",
+                                subtitle: "View and edit your profile",
+                                iconColor: skyBlue,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const Profilescreen(),
+                                    ),
+                                  );
+                                },
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                isDarkMode: isDarkMode,
+                                textColor: textColor,
+                                subtitleColor: subtitleColor,
+                                gradientColors: gradientColors,
+                              ),
+
+                              _buildPremiumSettingTile(
+                                icon: Icons.lock_outline_rounded,
+                                title: "Change Password",
+                                subtitle: "Update your password",
+                                iconColor: deepSky,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const ChangePasswordScreen(),
+                                    ),
+                                  );
+                                },
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                isDarkMode: isDarkMode,
+                                textColor: textColor,
+                                subtitleColor: subtitleColor,
+                                gradientColors: gradientColors,
+                              ),
+
+                              _buildPremiumSettingTile(
+                                icon: Icons.email_outlined,
+                                title: "Notification Email",
+                                subtitle: user?['email'] ?? "Not set",
+                                iconColor: mediumSky,
+                                onTap: () {},
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                isDarkMode: isDarkMode,
+                                textColor: textColor,
+                                subtitleColor: subtitleColor,
+                                gradientColors: gradientColors,
+                              ),
+
+                              _buildPremiumDropdownTile(
+                                icon: Icons.language_rounded,
+                                title: "Language",
+                                value: selectedLanguage,
+                                options: const ["English", "Arabic"],
+                                iconColor: deepSky,
+                                onChanged: (value) {
+                                  setState(() => selectedLanguage = value!);
+                                },
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                isDarkMode: isDarkMode,
+                                textColor: textColor,
+                                subtitleColor: subtitleColor,
+                                gradientColors: gradientColors,
+                              ),
+
+                              _buildPremiumDropdownTile(
+                                icon: Icons.brightness_6_outlined,
+                                title: "Theme",
+                                value: selectedTheme,
+                                options: const ["Light", "Dark", "System"],
+                                iconColor: mediumSky,
+                                onChanged: (value) async {
+                                  if (value == null) return;
+                                  setState(() => selectedTheme = value);
+
+                                  // Theme apply karo immediately
+                                  switch (value) {
+                                    case 'Light':
+                                      themeNotifier.value = ThemeMode.light;
+                                      break;
+                                    case 'Dark':
+                                      themeNotifier.value = ThemeMode.dark;
+                                      break;
+                                    default:
+                                      themeNotifier.value = ThemeMode.system;
+                                  }
+
+                                  // SharedPreferences mein save karo
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.setString('selected_theme', value);
+                                },
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                isDarkMode: isDarkMode,
+                                textColor: textColor,
+                                subtitleColor: subtitleColor,
+                                gradientColors: gradientColors,
+                              ),
+
+                              SizedBox(height: screenHeight * 0.03),
+
+                              // App Settings (commented out)
+                              // ... existing commented code ...
+
+                              SizedBox(height: screenHeight * 0.05),
+
+                              // App Info with Sky Blue Theme
+                              Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      "Version 1.0.0",
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.035,
+                                        fontWeight: FontWeight.w600,
+                                        color: skyBlue,
+                                      ),
+                                    ),
+                                    SizedBox(height: screenHeight * 0.005),
+                                    Text(
+                                      "© 2024 Management App",
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.03,
+                                        color: subtitleColor.withOpacity(0.6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              SizedBox(height: screenHeight * 0.02),
                             ],
                           ),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.2),
-                                Colors.white.withOpacity(0.1),
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.logout_rounded,
-                              color: Colors.white,
-                              size: screenWidth * 0.06,
-                            ),
-                            onPressed: () => _showLogoutDialog(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Scrollable content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: screenWidth * 0.045,
-                        vertical: screenHeight * 0.025,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Premium Profile Section with Sky Blue Theme
-                          _buildPremiumProfileSection(
-                            context,
-                            user,
-                            screenWidth,
-                            screenHeight,
-                            isDarkMode,
-                            textColor,
-                            subtitleColor,
-                            gradientColors,
-                          ),
-
-                          SizedBox(height: screenHeight * 0.03),
-
-                          // Account Settings
-                          _buildPremiumSectionTitle(
-                            "Account Settings",
-                            Icons.settings_rounded,
-                            gradientColors,
-                            screenWidth,
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-
-                          _buildPremiumSettingTile(
-                            icon: Icons.person_outline_rounded,
-                            title: "User Profile",
-                            subtitle: "View and edit your profile",
-                            iconColor: skyBlue,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const Profilescreen(),
-                                ),
-                              );
-                            },
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),
-
-                          _buildPremiumSettingTile(
-                            icon: Icons.lock_outline_rounded,
-                            title: "Change Password",
-                            subtitle: "Update your password",
-                            iconColor: deepSky,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const ChangePasswordScreen(),
-                                ),
-                              );
-                            },
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),
-
-                          _buildPremiumSettingTile(
-                            icon: Icons.email_outlined,
-                            title: "Notification Email",
-                            subtitle: user?['email'] ?? "Not set",
-                            iconColor: mediumSky,
-                            onTap: () {},
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),
-
-                          _buildPremiumDropdownTile(
-                            icon: Icons.language_rounded,
-                            title: "Language",
-                            value: selectedLanguage,
-                            options: const ["English", "Arabic"],
-                            iconColor: deepSky,
-                            onChanged: (value) {
-                              setState(() => selectedLanguage = value!);
-                            },
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),
-
-                          _buildPremiumDropdownTile(
-                            icon: Icons.brightness_6_outlined,
-                            title: "Theme",
-                            value: selectedTheme,
-                            options: const ["Light", "Dark", "System"],
-                            iconColor: mediumSky,
-                            onChanged: (value) async {
-                              if (value == null) return;
-                              setState(() => selectedTheme = value);
-
-                              // Theme apply karo immediately
-                              switch (value) {
-                                case 'Light':
-                                  themeNotifier.value = ThemeMode.light;
-                                  break;
-                                case 'Dark':
-                                  themeNotifier.value = ThemeMode.dark;
-                                  break;
-                                default:
-                                  themeNotifier.value = ThemeMode.system;
-                              }
-
-                              // SharedPreferences mein save karo
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setString('selected_theme', value);
-                            },
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),
-
-                          SizedBox(height: screenHeight * 0.03),
-
-                          // App Settings
-                          /*  _buildPremiumSectionTitle(
-                            "App Settings",
-                            Icons.app_settings_alt_rounded,
-                            gradientColors,
-                            screenWidth,
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-
-                          _buildPremiumToggleTile(
-                            icon: Icons.mic_none_outlined,
-                            title: "Voice Recognition",
-                            subtitle: "Enable voice commands",
-                            value: voiceEnabled,
-                            iconColor: skyBlue,
-                            onChanged: (value) {
-                              setState(() => voiceEnabled = value);
-                            },
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),
-
-                          _buildPremiumToggleTile(
-                            icon: Icons.face_retouching_natural,
-                            title: "Face ID Login",
-                            subtitle: "Biometric authentication",
-                            value: faceIdEnabled,
-                            iconColor: lightSky,
-                            onChanged: (value) {
-                              setState(() => faceIdEnabled = value);
-                            },
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isDarkMode: isDarkMode,
-                            textColor: textColor,
-                            subtitleColor: subtitleColor,
-                            gradientColors: gradientColors,
-                          ),*/
-                          SizedBox(height: screenHeight * 0.05),
-
-                          // App Info with Sky Blue Theme
-                          Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "Version 1.0.0",
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.035,
-                                    fontWeight: FontWeight.w600,
-                                    color: skyBlue,
-                                  ),
-                                ),
-                                SizedBox(height: screenHeight * 0.005),
-                                Text(
-                                  "© 2024 Management App",
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.03,
-                                    color: subtitleColor.withOpacity(0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(height: screenHeight * 0.02),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1047,11 +1018,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // ✅ CORRECTED: Perform Logout - DON'T delete punch data
   // Perform Logout
   Future<void> _performLogout(BuildContext context) async {
-    // ✅ REMOVED: punchProvider.clearTodayPunches(); - DON'T delete punch data
-
     final auth = AuthService();
     final result = await auth.logoutUser();
 
