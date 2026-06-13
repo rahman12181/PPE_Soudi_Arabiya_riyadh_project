@@ -116,15 +116,15 @@ class _HomemainScreenState extends State<HomemainScreen>
     _connectivityService.initialize();
     _checkInternetConnection();
 
-    _connectivitySubscription = _connectivityService.connectionStatus.listen(
-      (result) {
-        if (!mounted) return;
-        setState(() {
-          _connectionType = result;
-          _hasInternet = result != ConnectivityResult.none;
-        });
-      },
-    );
+    _connectivitySubscription = _connectivityService.connectionStatus.listen((
+      result,
+    ) {
+      if (!mounted) return;
+      setState(() {
+        _connectionType = result;
+        _hasInternet = result != ConnectivityResult.none;
+      });
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _fetchLocation();
@@ -315,15 +315,15 @@ class _HomemainScreenState extends State<HomemainScreen>
   }
 
   // ==================== UPDATED SMALLER DIALOGS (30% smaller) ====================
-  
+
   void _showSuccessDialog({required String message, required bool isPunchIn}) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final Color successColor = const Color(0xFF22C55E);
-    
+
     final String formattedTime = DateFormat('hh:mm a').format(DateTime.now());
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -334,10 +334,7 @@ class _HomemainScreenState extends State<HomemainScreen>
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
           builder: (context, scale, child) {
-            return Transform.scale(
-              scale: scale,
-              child: child,
-            );
+            return Transform.scale(scale: scale, child: child);
           },
           child: Dialog(
             backgroundColor: Colors.transparent,
@@ -381,7 +378,10 @@ class _HomemainScreenState extends State<HomemainScreen>
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [successColor, successColor.withOpacity(0.7)],
+                              colors: [
+                                successColor,
+                                successColor.withOpacity(0.7),
+                              ],
                             ),
                             shape: BoxShape.circle,
                             boxShadow: [
@@ -393,7 +393,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                             ],
                           ),
                           child: Icon(
-                            isPunchIn ? Icons.login_rounded : Icons.logout_rounded,
+                            isPunchIn
+                                ? Icons.login_rounded
+                                : Icons.logout_rounded,
                             color: Colors.white,
                             size: 28,
                           ),
@@ -402,7 +404,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     },
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  
+
                   Text(
                     isPunchIn ? "PUNCH IN ✓" : "PUNCH OUT ✓",
                     style: TextStyle(
@@ -413,7 +415,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.008),
-                  
+
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: screenWidth * 0.04,
@@ -422,9 +424,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     decoration: BoxDecoration(
                       color: successColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: successColor.withOpacity(0.3),
-                      ),
+                      border: Border.all(color: successColor.withOpacity(0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -447,7 +447,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  
+
                   Text(
                     message,
                     textAlign: TextAlign.center,
@@ -460,7 +460,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: screenHeight * 0.015),
-                  
+
                   SizedBox(
                     width: screenWidth * 0.08,
                     height: 2,
@@ -476,7 +476,7 @@ class _HomemainScreenState extends State<HomemainScreen>
         );
       },
     );
-    
+
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted && Navigator.canPop(context)) {
         Navigator.pop(context);
@@ -493,7 +493,7 @@ class _HomemainScreenState extends State<HomemainScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final Color errorColor = const Color(0xFFEF4444);
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -504,10 +504,7 @@ class _HomemainScreenState extends State<HomemainScreen>
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
           builder: (context, scale, child) {
-            return Transform.scale(
-              scale: scale,
-              child: child,
-            );
+            return Transform.scale(scale: scale, child: child);
           },
           child: Dialog(
             backgroundColor: Colors.transparent,
@@ -572,7 +569,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     },
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  
+
                   Text(
                     "FAILED",
                     style: TextStyle(
@@ -583,7 +580,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  
+
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: screenWidth * 0.03,
@@ -606,7 +603,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.015),
-                  
+
                   if (onAction != null)
                     TextButton(
                       onPressed: () {
@@ -648,7 +645,7 @@ class _HomemainScreenState extends State<HomemainScreen>
         );
       },
     );
-    
+
     if (onAction == null) {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted && Navigator.canPop(context)) {
@@ -662,7 +659,7 @@ class _HomemainScreenState extends State<HomemainScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -673,10 +670,7 @@ class _HomemainScreenState extends State<HomemainScreen>
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
           builder: (context, scale, child) {
-            return Transform.scale(
-              scale: scale,
-              child: child,
-            );
+            return Transform.scale(scale: scale, child: child);
           },
           child: Dialog(
             backgroundColor: Colors.transparent,
@@ -701,10 +695,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     offset: const Offset(0, 8),
                   ),
                 ],
-                border: Border.all(
-                  color: color.withOpacity(0.3),
-                  width: 1.5,
-                ),
+                border: Border.all(color: color.withOpacity(0.3), width: 1.5),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -732,7 +723,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                             ],
                           ),
                           child: Icon(
-                            color == const Color(0xFFF97316) 
+                            color == const Color(0xFFF97316)
                                 ? Icons.warning_rounded
                                 : Icons.info_outline_rounded,
                             color: Colors.white,
@@ -743,7 +734,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     },
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  
+
                   Text(
                     "INFO",
                     style: TextStyle(
@@ -754,7 +745,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  
+
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: screenWidth * 0.03,
@@ -777,7 +768,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.015),
-                  
+
                   SizedBox(
                     width: screenWidth * 0.08,
                     height: 2,
@@ -793,7 +784,7 @@ class _HomemainScreenState extends State<HomemainScreen>
         );
       },
     );
-    
+
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted && Navigator.canPop(context)) {
         Navigator.pop(context);
@@ -806,7 +797,7 @@ class _HomemainScreenState extends State<HomemainScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final gradientColors = _getHeaderGradientColors(isDarkMode);
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -822,9 +813,7 @@ class _HomemainScreenState extends State<HomemainScreen>
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: isDarkMode
-                    ? [charcoal, slate]
-                    : [pureWhite, offWhite],
+                colors: isDarkMode ? [charcoal, slate] : [pureWhite, offWhite],
               ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
@@ -876,9 +865,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                 const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ],
             ),
@@ -1779,12 +1766,16 @@ class _HomemainScreenState extends State<HomemainScreen>
     final punchProvider = Provider.of<PunchProvider>(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-  statusBarColor: Colors.transparent,
-  statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-  statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
-  systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
-  systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-),
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
+        systemNavigationBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
+      ),
       child: Scaffold(
         backgroundColor: isDarkMode ? charcoal : offWhite,
         body: SafeArea(
@@ -1858,7 +1849,9 @@ class _HomemainScreenState extends State<HomemainScreen>
                             ),
                             Padding(
                               padding: EdgeInsets.only(
-                                top: MediaQuery.of(context).padding.top + screenHeight * 0.02,
+                                top:
+                                    MediaQuery.of(context).padding.top +
+                                    screenHeight * 0.02,
                                 left: screenWidth * 0.05,
                                 right: screenWidth * 0.05,
                                 bottom: screenHeight * 0.03,

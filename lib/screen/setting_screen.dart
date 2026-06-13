@@ -57,7 +57,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
         statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
         systemNavigationBarIconBrightness: isDarkMode
@@ -218,7 +220,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const ChangePasswordScreen(),
+                                      builder: (_) =>
+                                          const ChangePasswordScreen(),
                                     ),
                                   );
                                 },
@@ -286,7 +289,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   // SharedPreferences mein save karo
                                   final prefs =
                                       await SharedPreferences.getInstance();
-                                  await prefs.setString('selected_theme', value);
+                                  await prefs.setString(
+                                    'selected_theme',
+                                    value,
+                                  );
                                 },
                                 screenWidth: screenWidth,
                                 screenHeight: screenHeight,
@@ -297,22 +303,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
 
                               _buildPremiumSettingTile(
-  icon: Icons.info_outline_rounded,
-  title: "About Us",
-  subtitle: "Learn more about Management App",
-  iconColor: skyBlue,
-  onTap: () => _showAboutUsDialog(context),
-  screenWidth: screenWidth,
-  screenHeight: screenHeight,
-  isDarkMode: isDarkMode,
-  textColor: textColor,
-  subtitleColor: subtitleColor,
-  gradientColors: gradientColors,
-),
+                                icon: Icons.info_outline_rounded,
+                                title: "About Us",
+                                subtitle: "Learn more about Management App",
+                                iconColor: skyBlue,
+                                onTap: () => _showAboutUsDialog(context),
+                                screenWidth: screenWidth,
+                                screenHeight: screenHeight,
+                                isDarkMode: isDarkMode,
+                                textColor: textColor,
+                                subtitleColor: subtitleColor,
+                                gradientColors: gradientColors,
+                              ),
 
                               // App Settings (commented out)
                               // ... existing commented code ...
-
                               SizedBox(height: screenHeight * 0.05),
 
                               // App Info with Sky Blue Theme
@@ -1164,171 +1169,180 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // About Us Dialog with Website Link
-void _showAboutUsDialog(BuildContext context) {
-  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-  final screenWidth = MediaQuery.of(context).size.width;
-  final gradientColors = _getHeaderGradientColors(isDarkMode);
+  void _showAboutUsDialog(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final gradientColors = _getHeaderGradientColors(isDarkMode);
 
-  showDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierColor: Colors.black.withOpacity(0.5),
-    builder: (context) => Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      child: Container(
-        width: screenWidth * 0.85,
-        padding: EdgeInsets.all(screenWidth * 0.05),
-        decoration: BoxDecoration(
-          color: isDarkMode ? slate : pureWhite,
-          borderRadius: BorderRadius.circular(screenWidth * 0.06),
-          border: Border.all(color: skyBlue.withOpacity(0.3), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: skyBlue.withOpacity(0.2),
-              blurRadius: 30,
-              spreadRadius: 5,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Logo / Icon
-            Container(
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: gradientColors),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: skyBlue.withOpacity(0.3),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          width: screenWidth * 0.85,
+          padding: EdgeInsets.all(screenWidth * 0.05),
+          decoration: BoxDecoration(
+            color: isDarkMode ? slate : pureWhite,
+            borderRadius: BorderRadius.circular(screenWidth * 0.06),
+            border: Border.all(color: skyBlue.withOpacity(0.3), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: skyBlue.withOpacity(0.2),
+                blurRadius: 30,
+                spreadRadius: 5,
+                offset: const Offset(0, 10),
               ),
-              child: Icon(
-                Icons.info_outline_rounded,
-                color: Colors.white,
-                size: screenWidth * 0.08,
-              ),
-            ),
-            SizedBox(height: screenWidth * 0.04),
-            
-            // Title
-            Text(
-              "About Us",
-              style: TextStyle(
-                fontSize: screenWidth * 0.06,
-                fontWeight: FontWeight.w800,
-                color: skyBlue,
-              ),
-            ),
-            SizedBox(height: screenWidth * 0.02),
-            
-            // Description
-            Text(
-              "Management App helps you track your daily attendance, manage punches, and monitor your work hours efficiently.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: screenWidth * 0.038,
-                color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
-                height: 1.4,
-              ),
-            ),
-            SizedBox(height: screenWidth * 0.04),
-            
-            // Website Link
-            InkWell(
-              onTap: () {
-                // Copy to clipboard and show message
-                Clipboard.setData(const ClipboardData(text: "https://ppecon.com"));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Website link copied!"),
-                    duration: Duration(seconds: 1),
-                    backgroundColor: skyBlue,
-                  ),
-                );
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.04,
-                  vertical: screenWidth * 0.02,
-                ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Logo / Icon
+              Container(
+                padding: EdgeInsets.all(screenWidth * 0.04),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(colors: gradientColors),
-                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                  shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: skyBlue.withOpacity(0.3),
-                      blurRadius: 15,
-                      spreadRadius: 2,
+                      blurRadius: 20,
+                      spreadRadius: 5,
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.link_rounded, color: Colors.white, size: screenWidth * 0.04),
-                    SizedBox(width: screenWidth * 0.02),
-                    Text(
-                      "www.ppecon.com",
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.035,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: Colors.white,
+                  size: screenWidth * 0.08,
                 ),
               ),
-            ),
-            SizedBox(height: screenWidth * 0.03),
-            
-            // Version
-            Text(
-              "Version 1.0.0",
-              style: TextStyle(
-                fontSize: screenWidth * 0.03,
-                //color: subtitleColor.withOpacity(0.6),
+              SizedBox(height: screenWidth * 0.04),
+
+              // Title
+              Text(
+                "About Us",
+                style: TextStyle(
+                  fontSize: screenWidth * 0.06,
+                  fontWeight: FontWeight.w800,
+                  color: skyBlue,
+                ),
               ),
-            ),
-            SizedBox(height: screenWidth * 0.03),
-            
-            // Close Button
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+              SizedBox(height: screenWidth * 0.02),
+
+              // Description
+              Text(
+                "Management App helps you track your daily attendance, manage punches, and monitor your work hours efficiently.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: screenWidth * 0.038,
+                  color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
+                  height: 1.4,
+                ),
+              ),
+              SizedBox(height: screenWidth * 0.04),
+
+              // Website Link
+              InkWell(
+                onTap: () {
+                  // Copy to clipboard and show message
+                  Clipboard.setData(
+                    const ClipboardData(text: "https://ppecon.com"),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Website link copied!"),
+                      duration: Duration(seconds: 1),
+                      backgroundColor: skyBlue,
+                    ),
+                  );
+                },
                 child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03),
-                  decoration: BoxDecoration(
-                    color: skyBlue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
-                    border: Border.all(color: skyBlue.withOpacity(0.3), width: 1),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: screenWidth * 0.02,
                   ),
-                  child: Center(
-                    child: Text(
-                      "Close",
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.04,
-                        color: skyBlue,
-                        fontWeight: FontWeight.w700,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: gradientColors),
+                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                    boxShadow: [
+                      BoxShadow(
+                        color: skyBlue.withOpacity(0.3),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.link_rounded,
+                        color: Colors.white,
+                        size: screenWidth * 0.04,
+                      ),
+                      SizedBox(width: screenWidth * 0.02),
+                      Text(
+                        "www.ppecon.com",
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.035,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: screenWidth * 0.03),
+
+              // Version
+              Text(
+                "Version 1.0.0",
+                style: TextStyle(
+                  fontSize: screenWidth * 0.03,
+                  //color: subtitleColor.withOpacity(0.6),
+                ),
+              ),
+              SizedBox(height: screenWidth * 0.03),
+
+              // Close Button
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: screenWidth * 0.03),
+                    decoration: BoxDecoration(
+                      color: skyBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
+                      border: Border.all(
+                        color: skyBlue.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Close",
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.04,
+                          color: skyBlue,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
