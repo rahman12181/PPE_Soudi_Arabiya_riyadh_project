@@ -1,5 +1,3 @@
-
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -811,343 +809,331 @@ class _TwoWayTravelRequestScreenState extends State<TwoWayTravelRequestScreen>
     final shadowColor = isDarkMode
         ? Colors.black.withOpacity(0.5)
         : skyBlue.withOpacity(0.1);
+    
+    // Status bar color based on theme
+    final statusBarColor = isDarkMode ? charcoal : skyBlue;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
         systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
-        body: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Stack(
-              children: [
-                SafeArea(
-                  bottom: false,
-                  child: Container(
-                    color: backgroundColor,
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Container(
-                        color: backgroundColor,
-                        width: width,
-                        child: Transform.translate(
-                          offset: Offset(0, _slideAnimation.value),
-                          child: Opacity(
-                            opacity: _fadeAnimation.value,
-                            child: Column(
-                              children: [
-                                
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: width * 0.04,
-                                    vertical: height * 0.02,
+        body: Stack(
+          children: [
+            // Status bar background - changes with theme
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: statusBarColor,
+            ),
+            SafeArea(
+              top: true,
+              bottom: true,
+              child: AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Container(
+                      color: backgroundColor,
+                      width: width,
+                      child: Transform.translate(
+                        offset: Offset(0, _slideAnimation.value),
+                        child: Opacity(
+                          opacity: _fadeAnimation.value,
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: width * 0.04,
+                                  vertical: height * 0.02,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isDarkMode 
+                                        ? [charcoal, slate, const Color(0xFF1E1E2E)]
+                                        : [skyBlue, deepSky],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [skyBlue, deepSky],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(width * 0.08),
+                                    bottomRight: Radius.circular(width * 0.08),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: shadowColor,
+                                      blurRadius: 20,
+                                      spreadRadius: 1,
+                                      offset: const Offset(0, 4),
                                     ),
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(width * 0.08),
-                                      bottomRight: Radius.circular(width * 0.08),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          icon: Icon(
+                                            Icons.arrow_back_rounded,
+                                            color: Colors.white,
+                                            size: width * 0.06,
+                                          ),
+                                        ),
+                                        Text(
+                                          "Two-Way Travel",
+                                          style: TextStyle(
+                                            fontSize: width * 0.05,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                        SizedBox(width: width * 0.06), 
+                                      ],
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: skyBlue.withOpacity(0.3),
-                                        blurRadius: 20,
-                                        spreadRadius: 1,
-                                        offset: const Offset(0, 4),
+                                    SizedBox(height: height * 0.01),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: width * 0.04,
+                                        vertical: height * 0.015,
                                       ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(width * 0.03),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.2),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
                                         children: [
-                                          IconButton(
-                                            onPressed: () => Navigator.pop(context),
-                                            icon: Icon(
-                                              Icons.arrow_back_rounded,
-                                              color: Colors.white,
-                                              size: width * 0.06,
+                                          Icon(
+                                            Icons.sync_alt_rounded,
+                                            color: Colors.white,
+                                            size: width * 0.06,
+                                          ),
+                                          SizedBox(width: width * 0.03),
+                                          Expanded(
+                                            child: Text(
+                                              "Round trip travel request",
+                                              style: TextStyle(
+                                                fontSize: width * 0.04,
+                                                color: Colors.white.withOpacity(0.9),
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
                                           ),
-                                          Text(
-                                            "Two-Way Travel",
-                                            style: TextStyle(
-                                              fontSize: width * 0.05,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                          SizedBox(width: width * 0.06), 
                                         ],
                                       ),
-                                      SizedBox(height: height * 0.01),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: width * 0.04,
-                                          vertical: height * 0.015,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(width * 0.03),
-                                          border: Border.all(
-                                            color: Colors.white.withOpacity(0.2),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.sync_alt_rounded,
-                                              color: Colors.white,
-                                              size: width * 0.06,
-                                            ),
-                                            SizedBox(width: width * 0.03),
-                                            Expanded(
-                                              child: Text(
-                                                "Round trip travel request",
-                                                style: TextStyle(
-                                                  fontSize: width * 0.04,
-                                                  color: Colors.white.withOpacity(0.9),
-                                                  fontWeight: FontWeight.w500,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                color: backgroundColor,
+                                child: Card(
+                                  elevation: 0,
+                                  margin: EdgeInsets.all(width * 0.04),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(width * 0.05),
+                                    side: BorderSide(
+                                      color: skyBlue.withOpacity(0.2),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  color: cardColor,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(width * 0.04),
+                                    child: _isLoadingDropdowns
+                                        ? _buildLoadingShimmer()
+                                        : Form(
+                                            key: _formKey,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                _buildSelectionChips(
+                                                  "Travel Type",
+                                                  travelType,
+                                                  travelTypes,
+                                                  (value) => setState(() => travelType = value),
                                                 ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                
-                                Container(
-                                  color: backgroundColor,
-                                  child: Card(
-                                    elevation: 0,
-                                    margin: EdgeInsets.all(width * 0.04),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(width * 0.05),
-                                      side: BorderSide(
-                                        color: skyBlue.withOpacity(0.2),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    color: cardColor,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(width * 0.04),
-                                      child: _isLoadingDropdowns
-                                          ? _buildLoadingShimmer()
-                                          : Form(
-                                              key: _formKey,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  _buildSelectionChips(
-                                                    "Travel Type",
-                                                    travelType,
-                                                    travelTypes,
-                                                    (value) => setState(() => travelType = value),
-                                                  ),
-
-                                                  SizedBox(height: height * 0.025),
-
-                                                  fundingTypes.isEmpty
-                                                      ? const Center(
-                                                          child: Text(
-                                                            "No funding types available",
-                                                            style: TextStyle(color: Colors.red),
-                                                          ),
-                                                        )
-                                                      : _buildSelectionChips(
-                                                          "Travel Funding",
-                                                          travelFunding,
-                                                          fundingTypes,
-                                                          (value) => setState(() => travelFunding = value),
+                                                SizedBox(height: height * 0.025),
+                                                fundingTypes.isEmpty
+                                                    ? const Center(
+                                                        child: Text(
+                                                          "No funding types available",
+                                                          style: TextStyle(color: Colors.red),
                                                         ),
-
-                                                  SizedBox(height: height * 0.025),
-                                                  
-                                                  purposeTypes.isEmpty
-                                                      ? const Center(
-                                                          child: Text(
-                                                            "No purpose types available",
-                                                            style: TextStyle(color: Colors.red),
-                                                          ),
-                                                        )
-                                                      : _buildSelectionChips(
-                                                          "Purpose of Travel",
-                                                          purpose,
-                                                          purposeTypes,
-                                                          (value) => setState(() => purpose = value),
-                                                        ),
-
-                                                  SizedBox(height: height * 0.025),
-
-                                                  
-                                                  _buildLocationRow(
-                                                    title: "Onward Journey",
-                                                    fromCtrl: onwardFromCtrl,
-                                                    toCtrl: onwardToCtrl,
-                                                    modeValue: onwardMode,
-                                                    onModeChanged: (value) => setState(() => onwardMode = value),
-                                                    dateCtrl: onwardDateCtrl,
-                                                    onDateTap: () => pickDate(onwardDateCtrl),
-                                                  ),
-
-                                                  SizedBox(height: height * 0.02),
-
-                                                  
-                                                  _buildLocationRow(
-                                                    title: "Return Journey",
-                                                    fromCtrl: returnFromCtrl,
-                                                    toCtrl: returnToCtrl,
-                                                    modeValue: returnMode,
-                                                    onModeChanged: (value) => setState(() => returnMode = value),
-                                                    dateCtrl: returnDateCtrl,
-                                                    onDateTap: () => pickDate(returnDateCtrl),
-                                                  ),
-
-                                                  SizedBox(height: height * 0.025),
-
-                                                  
-                                                  Text(
-                                                    "Additional Details",
-                                                    style: TextStyle(
-                                                      fontSize: width * 0.04,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: textColor,
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: height * 0.01),
-                                                  TextFormField(
-                                                    controller: descCtrl,
-                                                    style: TextStyle(
-                                                      fontSize: width * 0.04,
-                                                      color: textColor,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                    maxLines: 4,
-                                                    minLines: 3,
-                                                    decoration: _inputDecoration(
-                                                      "Enter any additional details or requirements...",
-                                                      icon: Icons.notes,
-                                                    ),
-                                                  ),
-
-                                                  SizedBox(height: height * 0.04),
-
-                                                  
-                                                  SizedBox(
-                                                    width: double.infinity,
-                                                    height: height * 0.065,
-                                                    child: ElevatedButton(
-                                                      onPressed: (isLoading || _isLoadingDropdowns) ? null : submit,
-                                                      style: ElevatedButton.styleFrom(
-                                                        backgroundColor: skyBlue,
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(width * 0.035),
-                                                        ),
-                                                        elevation: 0,
-                                                        shadowColor: Colors.transparent,
+                                                      )
+                                                    : _buildSelectionChips(
+                                                        "Travel Funding",
+                                                        travelFunding,
+                                                        fundingTypes,
+                                                        (value) => setState(() => travelFunding = value),
                                                       ),
-                                                      child: Stack(
-                                                        alignment: Alignment.center,
-                                                        children: [
-                                                          AnimatedOpacity(
-                                                            opacity: isLoading ? 0 : 1,
-                                                            duration: const Duration(milliseconds: 200),
-                                                            child: Row(
-                                                              mainAxisAlignment: MainAxisAlignment.center,
-                                                              children: [
-                                                                Icon(
-                                                                  Icons.sync_alt_rounded,
-                                                                  size: width * 0.05,
-                                                                  color: Colors.white,
-                                                                ),
-                                                                SizedBox(width: width * 0.02),
-                                                                Text(
-                                                                  "Submit Two-Way Request",
-                                                                  style: TextStyle(
-                                                                    fontSize: width * 0.04,
-                                                                    fontWeight: FontWeight.w700,
-                                                                    color: Colors.white,
-                                                                    letterSpacing: 0.5,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          if (isLoading)
-                                                            SizedBox(
-                                                              width: width * 0.06,
-                                                              height: width * 0.06,
-                                                              child: CircularProgressIndicator(
-                                                                strokeWidth: 3,
+                                                SizedBox(height: height * 0.025),
+                                                purposeTypes.isEmpty
+                                                    ? const Center(
+                                                        child: Text(
+                                                          "No purpose types available",
+                                                          style: TextStyle(color: Colors.red),
+                                                        ),
+                                                      )
+                                                    : _buildSelectionChips(
+                                                        "Purpose of Travel",
+                                                        purpose,
+                                                        purposeTypes,
+                                                        (value) => setState(() => purpose = value),
+                                                      ),
+                                                SizedBox(height: height * 0.025),
+                                                _buildLocationRow(
+                                                  title: "Onward Journey",
+                                                  fromCtrl: onwardFromCtrl,
+                                                  toCtrl: onwardToCtrl,
+                                                  modeValue: onwardMode,
+                                                  onModeChanged: (value) => setState(() => onwardMode = value),
+                                                  dateCtrl: onwardDateCtrl,
+                                                  onDateTap: () => pickDate(onwardDateCtrl),
+                                                ),
+                                                SizedBox(height: height * 0.02),
+                                                _buildLocationRow(
+                                                  title: "Return Journey",
+                                                  fromCtrl: returnFromCtrl,
+                                                  toCtrl: returnToCtrl,
+                                                  modeValue: returnMode,
+                                                  onModeChanged: (value) => setState(() => returnMode = value),
+                                                  dateCtrl: returnDateCtrl,
+                                                  onDateTap: () => pickDate(returnDateCtrl),
+                                                ),
+                                                SizedBox(height: height * 0.025),
+                                                Text(
+                                                  "Additional Details",
+                                                  style: TextStyle(
+                                                    fontSize: width * 0.04,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: textColor,
+                                                  ),
+                                                ),
+                                                SizedBox(height: height * 0.01),
+                                                TextFormField(
+                                                  controller: descCtrl,
+                                                  style: TextStyle(
+                                                    fontSize: width * 0.04,
+                                                    color: textColor,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 4,
+                                                  minLines: 3,
+                                                  decoration: _inputDecoration(
+                                                    "Enter any additional details or requirements...",
+                                                    icon: Icons.notes,
+                                                  ),
+                                                ),
+                                                SizedBox(height: height * 0.04),
+                                                SizedBox(
+                                                  width: double.infinity,
+                                                  height: height * 0.065,
+                                                  child: ElevatedButton(
+                                                    onPressed: (isLoading || _isLoadingDropdowns) ? null : submit,
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: skyBlue,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(width * 0.035),
+                                                      ),
+                                                      elevation: 0,
+                                                      shadowColor: Colors.transparent,
+                                                    ),
+                                                    child: Stack(
+                                                      alignment: Alignment.center,
+                                                      children: [
+                                                        AnimatedOpacity(
+                                                          opacity: isLoading ? 0 : 1,
+                                                          duration: const Duration(milliseconds: 200),
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons.sync_alt_rounded,
+                                                                size: width * 0.05,
                                                                 color: Colors.white,
-                                                                backgroundColor: Colors.white.withOpacity(0.3),
                                                               ),
+                                                              SizedBox(width: width * 0.02),
+                                                              Text(
+                                                                "Submit Two-Way Request",
+                                                                style: TextStyle(
+                                                                  fontSize: width * 0.04,
+                                                                  fontWeight: FontWeight.w700,
+                                                                  color: Colors.white,
+                                                                  letterSpacing: 0.5,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        if (isLoading)
+                                                          SizedBox(
+                                                            width: width * 0.06,
+                                                            height: width * 0.06,
+                                                            child: CircularProgressIndicator(
+                                                              strokeWidth: 3,
+                                                              color: Colors.white,
+                                                              backgroundColor: Colors.white.withOpacity(0.3),
                                                             ),
-                                                        ],
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(height: height * 0.02),
+                                                SizedBox(
+                                                  width: double.infinity,
+                                                  height: height * 0.055,
+                                                  child: TextButton(
+                                                    onPressed: isLoading
+                                                        ? null
+                                                        : () {
+                                                            HapticFeedback.lightImpact();
+                                                            Navigator.pop(context);
+                                                          },
+                                                    style: TextButton.styleFrom(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(width * 0.035),
+                                                      ),
+                                                      foregroundColor: subtitleColor,
+                                                    ),
+                                                    child: Text(
+                                                      "Cancel",
+                                                      style: TextStyle(
+                                                        fontSize: width * 0.04,
+                                                        fontWeight: FontWeight.w600,
                                                       ),
                                                     ),
                                                   ),
-
-                                                  SizedBox(height: height * 0.02),
-
-                                                  
-                                                  SizedBox(
-                                                    width: double.infinity,
-                                                    height: height * 0.055,
-                                                    child: TextButton(
-                                                      onPressed: isLoading
-                                                          ? null
-                                                          : () {
-                                                              HapticFeedback.lightImpact();
-                                                              Navigator.pop(context);
-                                                            },
-                                                      style: TextButton.styleFrom(
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(width * 0.035),
-                                                        ),
-                                                        foregroundColor: subtitleColor,
-                                                      ),
-                                                      child: Text(
-                                                        "Cancel",
-                                                        style: TextStyle(
-                                                          fontSize: width * 0.04,
-                                                          fontWeight: FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
+                                                ),
+                                              ],
                                             ),
+                                          ),
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
