@@ -733,20 +733,25 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: gradientColors.first,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
-        systemNavigationBarIconBrightness: isDarkMode
-            ? Brightness.light
-            : Brightness.dark,
-      ),
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+  statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
+  systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
+  systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+),
       child: Scaffold(
         backgroundColor: isDarkMode ? charcoal : offWhite,
-        body: SafeArea(
-          top: true,
-          bottom: false,
-          child: Column(
+        body: Stack(
+          children: [
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: gradientColors.first,
+            ),
+            SafeArea(
+              top: true,
+              bottom: false,
+              child: Column(
             children: [
               Container(
                 width: double.infinity,
@@ -1096,9 +1101,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(
                             screenWidth * 0.05,
-                            screenHeight * 0.025,
-                            screenWidth * 0.05,
                             screenHeight * 0.015,
+                            screenWidth * 0.05,
+                            screenHeight * 0.03,
                           ),
                           child: Row(
                             children: [
@@ -1226,7 +1231,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ),
             ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
