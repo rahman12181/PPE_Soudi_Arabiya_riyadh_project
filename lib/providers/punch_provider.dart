@@ -172,7 +172,7 @@ class PunchProvider extends ChangeNotifier {
   double progressValue() {
     if (_punchInTime == null) return 0;
     final end = _punchOutTime ?? _riyadhNow(); 
-    return (end.difference(_punchInTime!).inSeconds / (8 * 60 * 60))
+    return (end.difference(_punchInTime!).inSeconds / (9 * 60 * 60))
         .clamp(0.0, 1.0);
   }
 
@@ -197,7 +197,7 @@ class PunchProvider extends ChangeNotifier {
     final duration = _punchOutTime!.difference(_punchInTime!);
     final hours = duration.inMinutes / 60;
     if (hours >= 9) return AttendanceStatus.overtime;
-    if (hours >= 8) return AttendanceStatus.completed;
+    if (hours >= 6) return AttendanceStatus.completed;
     return AttendanceStatus.shortage;
   }
 
