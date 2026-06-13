@@ -1,4 +1,4 @@
-
+ 
 
 // ignore_for_file: deprecated_member_use
 
@@ -105,7 +105,7 @@ class _AttendanceRequestsListScreenState extends State<AttendanceRequestsListScr
       case 'approved':
         return Colors.green;
       case 'rejected':
-        return Colors.red;
+        return Colors.red;  
       case 'pending':
         return skyBlue;  
       default:

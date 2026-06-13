@@ -9,6 +9,7 @@ import 'package:management_app/screen/profilescreen.dart';
 import 'package:management_app/services/auth_service.dart';
 import 'package:management_app/screen/goodbye_screen.dart';
 import 'package:management_app/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -239,10 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             icon: Icons.language_rounded,
                             title: "Language",
                             value: selectedLanguage,
-                            options: const [
-                              "English",
-                              "Arabic",
-                            ],
+                            options: const ["English", "Arabic"],
                             iconColor: deepSky,
                             onChanged: (value) {
                               setState(() => selectedLanguage = value!);
@@ -261,15 +259,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             value: selectedTheme,
                             options: const ["Light", "Dark", "System"],
                             iconColor: mediumSky,
-                            onChanged: (value) {
-                              setState(() => selectedTheme = value!);
-                              if (value == "Light") {
-                                themeNotifier.value = ThemeMode.light;
-                              } else if (value == "Dark") {
-                                themeNotifier.value = ThemeMode.dark;
-                              } else {
-                                themeNotifier.value = ThemeMode.system;
+                            onChanged: (value) async {
+                              if (value == null) return;
+                              setState(() => selectedTheme = value);
+
+                              // Theme apply karo immediately
+                              switch (value) {
+                                case 'Light':
+                                  themeNotifier.value = ThemeMode.light;
+                                  break;
+                                case 'Dark':
+                                  themeNotifier.value = ThemeMode.dark;
+                                  break;
+                                default:
+                                  themeNotifier.value = ThemeMode.system;
                               }
+
+                              // SharedPreferences mein save karo
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString('selected_theme', value);
                             },
                             screenWidth: screenWidth,
                             screenHeight: screenHeight,

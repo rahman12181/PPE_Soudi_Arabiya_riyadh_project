@@ -25,20 +25,27 @@ import 'package:management_app/screen/setting_screen.dart';
 import 'package:management_app/screen/splash_screen.dart';
 import 'package:management_app/screen/travel_request_screen.dart';
 import 'package:management_app/services/auth_service.dart';
-import 'package:management_app/services/navigation_service.dart'; // ✅ Yeh sahi path hai
+import 'package:management_app/services/navigation_service.dart';
 import 'package:management_app/utils/systembars_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Theme notifier — settings se control hoga
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+
+// Shortcut notifier — splash screen padh ke navigate karega
+final ValueNotifier<String?> shortcutNotifier = ValueNotifier(null);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-  // App open hote hi session silently check aur fix karo
+  // Saved theme load karo
+  await _loadSavedTheme();
+
+  // Session check
   await _initSession();
 
   await AuthService.loadCookies();
@@ -57,6 +64,21 @@ void main() async {
   );
 }
 
+Future<void> _loadSavedTheme() async {
+  final prefs = await SharedPreferences.getInstance();
+  final saved = prefs.getString('selected_theme') ?? 'System';
+  switch (saved) {
+    case 'Light':
+      themeNotifier.value = ThemeMode.light;
+      break;
+    case 'Dark':
+      themeNotifier.value = ThemeMode.dark;
+      break;
+    default:
+      themeNotifier.value = ThemeMode.system;
+  }
+}
+
 Future<void> _initSession() async {
   final prefs = await SharedPreferences.getInstance();
   final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
@@ -67,13 +89,10 @@ Future<void> _initSession() async {
 
   if (!isValid) {
     debugPrint("silent relogin happen because session expired during app open");
-
     final success = await AuthService.autoRelogin();
-
     if (success) {
-      debugPrint("silent relogin succcessful");
+      debugPrint("silent relogin successful");
     } else {
-      // Credentials nahi mile ya wrong — isLoggedIn false karo
       debugPrint("silent relogin failed — clearing session and logging out");
       await prefs.setBool("isLoggedIn", false);
     }
@@ -86,9 +105,7 @@ Future<bool> _checkSessionValid() async {
   try {
     final auth = AuthService();
     final response = await http.get(
-      Uri.parse(
-        "${AuthService.baseUrl}/api/method/frappe.auth.get_logged_user",
-      ),
+      Uri.parse("${AuthService.baseUrl}/api/method/frappe.auth.get_logged_user"),
       headers: auth.buildHeaders(),
     );
     return response.statusCode == 200;
@@ -114,21 +131,43 @@ class _MyAppState extends State<MyApp> {
   void _initQuickActions() {
     const QuickActions quickActions = QuickActions();
 
-    quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(type: 'home', localizedTitle: 'Home'),
-      const ShortcutItem(type: 'attendance', localizedTitle: 'Attendance'),
-      const ShortcutItem(type: 'leave_balance', localizedTitle: 'Leave Balance'),
-    ]);
-
+    // initialize PEHLE lagao — shortcut press hone pe callback fire hoga
     quickActions.initialize((String shortcutType) {
-      if (shortcutType == 'home') {
-        NavigationService.navigatorKey.currentState?.pushNamed('/homeMainScreen');
-      } else if (shortcutType == 'attendance') {
-        NavigationService.navigatorKey.currentState?.pushNamed('/attendanceScreen');
-      } else if (shortcutType == 'leave_balance') {
-        NavigationService.navigatorKey.currentState?.pushNamed('/leaveBalaneceScreen');
+      debugPrint('🚀 QuickAction received: $shortcutType');
+      shortcutNotifier.value = shortcutType;
+
+      // Agar app already running hai (splash skip ho chuki hai) to directly navigate karo
+      final navigator = NavigationService.navigatorKey.currentState;
+      if (navigator != null) {
+        if (shortcutType == 'home') {
+          navigator.pushNamedAndRemoveUntil('/homeMainScreen', (r) => false);
+        } else if (shortcutType == 'attendance') {
+          navigator.pushNamedAndRemoveUntil('/attendanceScreen', (r) => false);
+        } else if (shortcutType == 'leave_balance') {
+          navigator.pushNamedAndRemoveUntil('/leaveBalaneceScreen', (r) => false);
+        }
       }
+      // Agar navigator null hai (app abhi start ho rahi hai) to
+      // shortcutNotifier.value set hai — SplashScreen handle karegi
     });
+
+    // setShortcutItems ko alag async function mein call karo
+    // taaki initialize() ka callback kabhi block na ho
+    _setShortcuts(quickActions);
+  }
+
+  Future<void> _setShortcuts(QuickActions quickActions) async {
+    try {
+      await quickActions.setShortcutItems(<ShortcutItem>[
+        const ShortcutItem(type: 'home', localizedTitle: 'Home'),
+        const ShortcutItem(type: 'attendance', localizedTitle: 'Attendance'),
+        const ShortcutItem(type: 'leave_balance', localizedTitle: 'Leave Balance'),
+      ]);
+      debugPrint('✅ QuickActions shortcuts set successfully');
+    } catch (e) {
+      debugPrint('⚠️ QuickActions setShortcutItems failed: $e');
+      // Silently ignore — shortcuts na bhi chalein to app crash nahi hoga
+    }
   }
 
   @override
@@ -137,7 +176,7 @@ class _MyAppState extends State<MyApp> {
       valueListenable: themeNotifier,
       builder: (context, currentTheme, _) {
         return MaterialApp(
-          navigatorKey: NavigationService.navigatorKey, 
+          navigatorKey: NavigationService.navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'Pioneer',
           themeMode: currentTheme,
@@ -194,7 +233,7 @@ class _MyAppState extends State<MyApp> {
               bodySmall: TextStyle(color: Colors.white60),
             ),
             iconTheme: const IconThemeData(color: Colors.white),
-            cardColor: Color(0xFF1E1E1E),
+            cardColor: const Color(0xFF1E1E1E),
             dividerColor: Colors.white24,
             colorScheme: const ColorScheme.dark(
               primary: Color(0xFF90CAF9),

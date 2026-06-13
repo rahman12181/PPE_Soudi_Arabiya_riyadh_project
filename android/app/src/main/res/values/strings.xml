@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pioneer</string>
+    <string name="shortcut_home_short">Home</string>
+    <string name="shortcut_home_long">Open Home Screen</string>
+    <string name="shortcut_attendance_short">Attendance</string>
+    <string name="shortcut_attendance_long">Check Attendance</string>
+    <string name="shortcut_leave_short">Leave Balance</string>
+    <string name="shortcut_leave_long">View Leave Balance</string>
+</resources>

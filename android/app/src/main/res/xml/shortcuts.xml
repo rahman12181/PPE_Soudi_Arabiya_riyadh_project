@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+  <shortcut
+    android:shortcutId="home"
+    android:icon="@drawable/ic_home_shortcut"
+    android:shortcutShortLabel="@string/shortcut_home_short"
+    android:shortcutLongLabel="@string/shortcut_home_long">
+    <intent
+      android:action="android.intent.action.VIEW"
+      android:targetPackage="com.rahman.pioneer_app"
+      android:targetClass="com.rahman.pioneer_app.MainActivity"
+      android:data="shortcut://home"/>
+  </shortcut>
+
+  <shortcut
+    android:shortcutId="attendance"
+    android:icon="@drawable/ic_attendance_shortcut"
+    android:shortcutShortLabel="@string/shortcut_attendance_short"
+    android:shortcutLongLabel="@string/shortcut_attendance_long">
+    <intent
+      android:action="android.intent.action.VIEW"
+      android:targetPackage="com.rahman.pioneer_app"
+      android:targetClass="com.rahman.pioneer_app.MainActivity"
+      android:data="shortcut://attendance"/>
+  </shortcut>
+
+  <shortcut
+    android:shortcutId="leave_balance"
+    android:icon="@drawable/ic_leave_shortcut"
+    android:shortcutShortLabel="@string/shortcut_leave_short"
+    android:shortcutLongLabel="@string/shortcut_leave_long">
+    <intent
+      android:action="android.intent.action.VIEW"
+      android:targetPackage="com.rahman.pioneer_app"
+      android:targetClass="com.rahman.pioneer_app.MainActivity"
+      android:data="shortcut://leave_balance"/>
+  </shortcut>
+</shortcuts>

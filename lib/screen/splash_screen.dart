@@ -1,9 +1,12 @@
 // ignore_for_file: deprecated_member_use, unused_field
 
 import 'package:flutter/material.dart';
+import 'package:management_app/main.dart';
 import 'package:management_app/services/auth_service.dart';
 import 'package:management_app/utils/checkuser_util.dart';
 import 'package:management_app/utils/systembars_utils.dart';
+import 'package:quick_actions/quick_actions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -142,16 +145,46 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Future<void> _startAnimations() async {
-    _logoController.forward().then((_) {
-      _textController.forward();
-      _startTypingAnimation();
-    });
+ Future<void> _startAnimations() async {
+  _logoController.forward().then((_) {
+    _textController.forward();
+    _startTypingAnimation();
+  });
 
-    await Future.delayed(const Duration(seconds: 4));
-    if (!mounted) return;
+  await Future.delayed(const Duration(seconds: 4));
+  if (!mounted) return;
+
+  // ✅ Shortcut check PEHLE
+  final shortcut = shortcutNotifier.value;
+  shortcutNotifier.value = null;
+
+  if (shortcut != null) {
+    debugPrint('🎯 Shortcut: $shortcut');
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool("isLoggedIn") ?? false;
+    final token = prefs.getString("authToken");
+
+    if (!context.mounted) return;
+
+    if (!isLoggedIn || token == null || token.isEmpty) {
+      Navigator.pushReplacementNamed(context, "/loginScreen");
+      return;
+    }
+
+    // Logged in hai — shortcut screen pe jao
+    if (shortcut == 'attendance') {
+      Navigator.pushReplacementNamed(context, '/attendanceScreen');
+    } else if (shortcut == 'leave_balance') {
+      Navigator.pushReplacementNamed(context, '/leaveBalaneceScreen');
+    } else {
+      // 'home'
+      Navigator.pushReplacementNamed(context, '/homeScreen');
+    }
+  } else {
+    // Normal flow
     CheckuserUtils.checkUser(context);
   }
+}
 
   Future<void> _startTypingAnimation() async {
     for (int i = 0; i < fullText.length; i++) {
