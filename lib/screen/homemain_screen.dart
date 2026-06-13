@@ -1779,18 +1779,16 @@ class _HomemainScreenState extends State<HomemainScreen>
     final punchProvider = Provider.of<PunchProvider>(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: gradientColors.first,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
-        systemNavigationBarIconBrightness: isDarkMode
-            ? Brightness.light
-            : Brightness.dark,
-      ),
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+  statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
+  systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
+  systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+),
       child: Scaffold(
         backgroundColor: isDarkMode ? charcoal : offWhite,
         body: SafeArea(
-          top: true,
+          top: false,
           bottom: true,
           child: Column(
             children: [
@@ -1860,7 +1858,7 @@ class _HomemainScreenState extends State<HomemainScreen>
                             ),
                             Padding(
                               padding: EdgeInsets.only(
-                                top: screenHeight * 0.02,
+                                top: MediaQuery.of(context).padding.top + screenHeight * 0.02,
                                 left: screenWidth * 0.05,
                                 right: screenWidth * 0.05,
                                 bottom: screenHeight * 0.03,
