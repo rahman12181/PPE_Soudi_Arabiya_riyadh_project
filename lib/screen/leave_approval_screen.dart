@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:management_app/card_screen/leaverequest.dart';
 import 'package:management_app/model/leave_approved_model.dart';
 import 'package:management_app/screen/travel_request_screen.dart';
@@ -446,348 +447,481 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
     final cardColor = isDark ? slate : pureWhite;
     final textColor = isDark ? Colors.white : Colors.black;
     final subtitleColor = isDark ? Colors.grey[400] : Colors.grey[600];
+    
+    // Status bar color based on theme
+    final statusBarColor = isDark ? charcoal : skyBlue;
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        top: true,
-        bottom: true,
-        child: Stack(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: isDark ? charcoal : pureWhite,
+        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        body: Stack(
           children: [
-            Column(
-              children: [
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: responsiveWidth(0.04),
-                        vertical: responsiveHeight(0.02),
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [skyBlue, deepSky],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: skyBlue.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ScaleTransition(
-                            scale: _scaleAnimation,
-                            child: IconButton(
-                              icon: Container(
-                                padding: EdgeInsets.all(responsiveWidth(0.01)),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  color: Colors.white,
-                                  size: responsiveWidth(0.05),
-                                ),
-                              ),
-                              onPressed: () => Navigator.pop(context),
+            // Status bar background
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: statusBarColor,
+            ),
+            SafeArea(
+              top: true,
+              bottom: true,
+              child: Stack(
+                children: [
+                  Column(
+                    children: [
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: responsiveWidth(0.04),
+                              vertical: responsiveHeight(0.02),
                             ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                "My Requests",
-                                style: TextStyle(
-                                  fontSize: responsiveFontSize(20),
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              if (_employeeName.isNotEmpty)
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: responsiveWidth(0.02),
-                                    vertical: responsiveHeight(0.002),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    _employeeName,
-                                    style: TextStyle(
-                                      fontSize: responsiveFontSize(12),
-                                      color: Colors.white.withOpacity(0.9),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          Stack(
-                            children: [
-                              ScaleTransition(
-                                scale: _scaleAnimation,
-                                child: IconButton(
-                                  icon: AnimatedRotation(
-                                    duration: const Duration(milliseconds: 500),
-                                    turns: _isRefreshing ? 1 : 0,
-                                    child: Icon(
-                                      Icons.refresh_rounded,
-                                      size: responsiveWidth(0.06),
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed: _isRefreshing
-                                      ? null
-                                      : _refreshData,
-                                  tooltip: "Refresh",
-                                ),
-                              ),
-                              if (_isRefreshing)
-                                Positioned(
-                                  right: responsiveWidth(0.02),
-                                  top: responsiveHeight(0.01),
-                                  child: ScaleTransition(
-                                    scale: _pulseAnimation,
-                                    child: Container(
-                                      width: responsiveWidth(0.015),
-                                      height: responsiveWidth(0.015),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.green,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Search and Filter Section
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Padding(
-                      padding: EdgeInsets.all(responsiveWidth(0.04)),
-                      child: Column(
-                        children: [
-                          Container(
                             decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: isDark 
+                                    ? [charcoal, slate, const Color(0xFF1E1E2E)]
+                                    : [skyBlue, deepSky],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(30),
+                                bottomRight: Radius.circular(30),
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: skyBlue.withOpacity(0.1),
-                                  blurRadius: 10,
+                                  color: skyBlue.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  spreadRadius: 1,
                                   offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
-                            child: TextField(
-                              controller: _searchController,
-                              onChanged: _onSearchChanged,
-                              decoration: InputDecoration(
-                                hintText: "Search requests...",
-                                hintStyle: TextStyle(
-                                  fontSize: responsiveFontSize(14),
-                                  color: subtitleColor,
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.search_rounded,
-                                  size: responsiveWidth(0.05),
-                                  color: skyBlue,
-                                ),
-                                filled: true,
-                                fillColor: cardColor,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    responsiveWidth(0.04),
-                                  ),
-                                  borderSide: BorderSide.none,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    responsiveWidth(0.04),
-                                  ),
-                                  borderSide: BorderSide(
-                                    color: isDark
-                                        ? Colors.grey[700]!
-                                        : Colors.grey[300]!,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    responsiveWidth(0.04),
-                                  ),
-                                  // ignore: prefer_const_constructors
-                                  borderSide: BorderSide(
-                                    color: skyBlue,
-                                    width: 2,
-                                  ),
-                                ),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: responsiveWidth(0.04),
-                                  vertical: responsiveHeight(0.02),
-                                ),
-                                suffixIcon: _searchController.text.isNotEmpty
-                                    ? IconButton(
-                                        icon: Icon(
-                                          Icons.clear_rounded,
-                                          size: responsiveWidth(0.05),
-                                          color: subtitleColor,
-                                        ),
-                                        onPressed: _clearSearch,
-                                      )
-                                    : null,
-                              ),
-                              style: TextStyle(
-                                fontSize: responsiveFontSize(16),
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: responsiveHeight(0.02)),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "Filter: ",
-                                  style: TextStyle(
-                                    fontSize: responsiveFontSize(14),
-                                    color: subtitleColor,
-                                    fontWeight: FontWeight.w500,
+                                ScaleTransition(
+                                  scale: _scaleAnimation,
+                                  child: IconButton(
+                                    icon: Container(
+                                      padding: EdgeInsets.all(responsiveWidth(0.01)),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.arrow_back_ios_new_rounded,
+                                        color: Colors.white,
+                                        size: responsiveWidth(0.05),
+                                      ),
+                                    ),
+                                    onPressed: () => Navigator.pop(context),
                                   ),
                                 ),
-                                SizedBox(width: responsiveWidth(0.02)),
-                                Wrap(
-                                  spacing: responsiveWidth(0.02),
-                                  children: ["All", "Leave", "Travel"].map((
-                                    filter,
-                                  ) {
-                                    final isSelected =
-                                        _selectedFilter == filter;
-                                    final filterColor = filter == "Leave"
-                                        ? Colors.green
-                                        : filter == "Travel"
-                                        ? Colors.orange
-                                        : skyBlue;
-                                    return ChoiceChip(
-                                      label: Text(
-                                        filter,
-                                        style: TextStyle(
-                                          fontSize: responsiveFontSize(14),
-                                          color: isSelected
-                                              ? Colors.white
-                                              : subtitleColor,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w500,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "My Requests",
+                                      style: TextStyle(
+                                        fontSize: responsiveFontSize(20),
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    if (_employeeName.isNotEmpty)
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: responsiveWidth(0.02),
+                                          vertical: responsiveHeight(0.002),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          _employeeName,
+                                          style: TextStyle(
+                                            fontSize: responsiveFontSize(12),
+                                            color: Colors.white.withOpacity(0.9),
+                                          ),
                                         ),
                                       ),
-                                      selected: isSelected,
-                                      backgroundColor: isDark
-                                          ? slate
-                                          : Colors.grey[200],
-                                      selectedColor: isSelected
-                                          ? filterColor
-                                          : null,
-                                      onSelected: (_) =>
-                                          _onFilterChanged(filter),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
+                                  ],
+                                ),
+                                Stack(
+                                  children: [
+                                    ScaleTransition(
+                                      scale: _scaleAnimation,
+                                      child: IconButton(
+                                        icon: AnimatedRotation(
+                                          duration: const Duration(milliseconds: 500),
+                                          turns: _isRefreshing ? 1 : 0,
+                                          child: Icon(
+                                            Icons.refresh_rounded,
+                                            size: responsiveWidth(0.06),
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        onPressed: _isRefreshing
+                                            ? null
+                                            : _refreshData,
+                                        tooltip: "Refresh",
                                       ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: responsiveWidth(0.04),
-                                        vertical: responsiveHeight(0.01),
+                                    ),
+                                    if (_isRefreshing)
+                                      Positioned(
+                                        right: responsiveWidth(0.02),
+                                        top: responsiveHeight(0.01),
+                                        child: ScaleTransition(
+                                          scale: _pulseAnimation,
+                                          child: Container(
+                                            width: responsiveWidth(0.015),
+                                            height: responsiveWidth(0.015),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.green,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    );
-                                  }).toList(),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                        ],
+                        ),
+                      ),
+
+                      // Search and Filter Section
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: Padding(
+                            padding: EdgeInsets.all(responsiveWidth(0.04)),
+                            child: Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: skyBlue.withOpacity(0.1),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: _onSearchChanged,
+                                    decoration: InputDecoration(
+                                      hintText: "Search requests...",
+                                      hintStyle: TextStyle(
+                                        fontSize: responsiveFontSize(14),
+                                        color: subtitleColor,
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.search_rounded,
+                                        size: responsiveWidth(0.05),
+                                        color: skyBlue,
+                                      ),
+                                      filled: true,
+                                      fillColor: cardColor,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          responsiveWidth(0.04),
+                                        ),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          responsiveWidth(0.04),
+                                        ),
+                                        borderSide: BorderSide(
+                                          color: isDark
+                                              ? Colors.grey[700]!
+                                              : Colors.grey[300]!,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          responsiveWidth(0.04),
+                                        ),
+                                        borderSide: const BorderSide(
+                                          color: skyBlue,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: responsiveWidth(0.04),
+                                        vertical: responsiveHeight(0.02),
+                                      ),
+                                      suffixIcon: _searchController.text.isNotEmpty
+                                          ? IconButton(
+                                              icon: Icon(
+                                                Icons.clear_rounded,
+                                                size: responsiveWidth(0.05),
+                                                color: subtitleColor,
+                                              ),
+                                              onPressed: _clearSearch,
+                                            )
+                                          : null,
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: responsiveFontSize(16),
+                                      color: textColor,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: responsiveHeight(0.02)),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "Filter: ",
+                                        style: TextStyle(
+                                          fontSize: responsiveFontSize(14),
+                                          color: subtitleColor,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      SizedBox(width: responsiveWidth(0.02)),
+                                      Wrap(
+                                        spacing: responsiveWidth(0.02),
+                                        children: ["All", "Leave", "Travel"].map((
+                                          filter,
+                                        ) {
+                                          final isSelected =
+                                              _selectedFilter == filter;
+                                          final filterColor = filter == "Leave"
+                                              ? Colors.green
+                                              : filter == "Travel"
+                                              ? Colors.orange
+                                              : skyBlue;
+                                          return ChoiceChip(
+                                            label: Text(
+                                              filter,
+                                              style: TextStyle(
+                                                fontSize: responsiveFontSize(14),
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : subtitleColor,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                              ),
+                                            ),
+                                            selected: isSelected,
+                                            backgroundColor: isDark
+                                                ? slate
+                                                : Colors.grey[200],
+                                            selectedColor: isSelected
+                                                ? filterColor
+                                                : null,
+                                            onSelected: (_) =>
+                                                _onFilterChanged(filter),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: responsiveWidth(0.04),
+                                              vertical: responsiveHeight(0.01),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Statistics Cards
+                      if (!_isLoading && !_hasError && _allRequests.isNotEmpty)
+                        FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: SlideTransition(
+                            position: _slideAnimation,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: responsiveWidth(0.04),
+                                vertical: responsiveHeight(0.01),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildStatItem(
+                                    title: "Total",
+                                    count: _totalCount.toString(),
+                                    color: skyBlue,
+                                    icon: Icons.list_alt_rounded,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    responsiveWidth: responsiveWidth,
+                                    responsiveHeight: responsiveHeight,
+                                    responsiveFontSize: responsiveFontSize,
+                                  ),
+                                  _buildStatItem(
+                                    title: "Leaves",
+                                    count: _leaveCount.toString(),
+                                    color: Colors.green,
+                                    icon: Icons.beach_access_rounded,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    responsiveWidth: responsiveWidth,
+                                    responsiveHeight: responsiveHeight,
+                                    responsiveFontSize: responsiveFontSize,
+                                  ),
+                                  _buildStatItem(
+                                    title: "Travel",
+                                    count: _travelCount.toString(),
+                                    color: Colors.orange,
+                                    icon: Icons.flight_takeoff_rounded,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    responsiveWidth: responsiveWidth,
+                                    responsiveHeight: responsiveHeight,
+                                    responsiveFontSize: responsiveFontSize,
+                                  ),
+                                  _buildStatItem(
+                                    title: "Pending",
+                                    count: _pendingCount.toString(),
+                                    color: skyBlue,
+                                    icon: Icons.pending_rounded,
+                                    screenWidth: screenWidth,
+                                    screenHeight: screenHeight,
+                                    responsiveWidth: responsiveWidth,
+                                    responsiveHeight: responsiveHeight,
+                                    responsiveFontSize: responsiveFontSize,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      if (_isRefreshing)
+                        LinearProgressIndicator(
+                          minHeight: 2,
+                          backgroundColor: skyBlue.withOpacity(0.2),
+                          valueColor: const AlwaysStoppedAnimation<Color>(skyBlue),
+                        ),
+
+                      if (_employeeId.isEmpty && !_isLoading)
+                        Padding(
+                          padding: EdgeInsets.all(responsiveWidth(0.04)),
+                          child: Container(
+                            padding: EdgeInsets.all(responsiveWidth(0.04)),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(
+                                responsiveWidth(0.04),
+                              ),
+                              border: Border.all(color: Colors.orange),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.orange,
+                                  size: responsiveWidth(0.05),
+                                ),
+                                SizedBox(width: responsiveWidth(0.03)),
+                                Expanded(
+                                  child: Text(
+                                    "Employee ID not found. Showing all requests.",
+                                    style: TextStyle(
+                                      color: Colors.orange,
+                                      fontSize: responsiveFontSize(14),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      Expanded(
+                        child: _buildRequestsList(
+                          theme,
+                          isDark,
+                          screenWidth,
+                          screenHeight,
+                          responsiveWidth,
+                          responsiveHeight,
+                          responsiveFontSize,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // FAB Menu Overlay
+                  if (_isFabOpen)
+                    GestureDetector(
+                      onTap: _toggleFabMenu,
+                      child: Container(
+                        color: Colors.black54,
+                        width: double.infinity,
+                        height: double.infinity,
                       ),
                     ),
-                  ),
-                ),
 
-                // Statistics Cards
-                if (!_isLoading && !_hasError && _allRequests.isNotEmpty)
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: responsiveWidth(0.04),
-                          vertical: responsiveHeight(0.01),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  // FAB Options
+                  Positioned(
+                    bottom: responsiveHeight(0.15),
+                    right: responsiveWidth(0.05),
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: _optionsOpacity,
+                      child: AnimatedScale(
+                        duration: const Duration(milliseconds: 300),
+                        scale: _fabScale,
+                        child: Column(
                           children: [
-                            _buildStatItem(
-                              title: "Total",
-                              count: _totalCount.toString(),
-                              color: skyBlue,
-                              icon: Icons.list_alt_rounded,
-                              screenWidth: screenWidth,
-                              screenHeight: screenHeight,
-                              responsiveWidth: responsiveWidth,
-                              responsiveHeight: responsiveHeight,
-                              responsiveFontSize: responsiveFontSize,
+                            ScaleTransition(
+                              scale: _bounceAnimation,
+                              child: _buildFabOptionItem(
+                                icon: Icons.flight_takeoff_outlined,
+                                label: "Travel Request",
+                                color: deepSky,
+                                onTap: _navigateToTravelRequest,
+                                theme: theme,
+                                screenWidth: screenWidth,
+                                responsiveWidth: responsiveWidth,
+                                responsiveHeight: responsiveHeight,
+                                responsiveFontSize: responsiveFontSize,
+                              ),
                             ),
-                            _buildStatItem(
-                              title: "Leaves",
-                              count: _leaveCount.toString(),
-                              color: Colors.green,
-                              icon: Icons.beach_access_rounded,
-                              screenWidth: screenWidth,
-                              screenHeight: screenHeight,
-                              responsiveWidth: responsiveWidth,
-                              responsiveHeight: responsiveHeight,
-                              responsiveFontSize: responsiveFontSize,
-                            ),
-                            _buildStatItem(
-                              title: "Travel",
-                              count: _travelCount.toString(),
-                              color: Colors.orange,
-                              icon: Icons.flight_takeoff_rounded,
-                              screenWidth: screenWidth,
-                              screenHeight: screenHeight,
-                              responsiveWidth: responsiveWidth,
-                              responsiveHeight: responsiveHeight,
-                              responsiveFontSize: responsiveFontSize,
-                            ),
-                            _buildStatItem(
-                              title: "Pending",
-                              count: _pendingCount.toString(),
-                              color: skyBlue,
-                              icon: Icons.pending_rounded,
-                              screenWidth: screenWidth,
-                              screenHeight: screenHeight,
-                              responsiveWidth: responsiveWidth,
-                              responsiveHeight: responsiveHeight,
-                              responsiveFontSize: responsiveFontSize,
+                            SizedBox(height: responsiveHeight(0.02)),
+                            ScaleTransition(
+                              scale: _bounceAnimation,
+                              child: _buildFabOptionItem(
+                                icon: Icons.beach_access_outlined,
+                                label: "Create Leave",
+                                color: skyBlue,
+                                onTap: _navigateToLeaveRequest,
+                                theme: theme,
+                                screenWidth: screenWidth,
+                                responsiveWidth: responsiveWidth,
+                                responsiveHeight: responsiveHeight,
+                                responsiveFontSize: responsiveFontSize,
+                              ),
                             ),
                           ],
                         ),
@@ -795,155 +929,45 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                     ),
                   ),
 
-                if (_isRefreshing)
-                  LinearProgressIndicator(
-                    minHeight: 2,
-                    backgroundColor: skyBlue.withOpacity(0.2),
-                    valueColor: const AlwaysStoppedAnimation<Color>(skyBlue),
-                  ),
-
-                if (_employeeId.isEmpty && !_isLoading)
-                  Padding(
-                    padding: EdgeInsets.all(responsiveWidth(0.04)),
-                    child: Container(
-                      padding: EdgeInsets.all(responsiveWidth(0.04)),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(
-                          responsiveWidth(0.04),
-                        ),
-                        border: Border.all(color: Colors.orange),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.orange,
-                            size: responsiveWidth(0.05),
+                  // Main FAB
+                  Positioned(
+                    bottom: responsiveHeight(0.03),
+                    right: responsiveWidth(0.05),
+                    child: GestureDetector(
+                      onTap: _toggleFabMenu,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: responsiveWidth(0.14),
+                        height: responsiveWidth(0.14),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [skyBlue, deepSky],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          SizedBox(width: responsiveWidth(0.03)),
-                          Expanded(
-                            child: Text(
-                              "Employee ID not found. Showing all requests.",
-                              style: TextStyle(
-                                color: Colors.orange,
-                                fontSize: responsiveFontSize(14),
-                              ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: skyBlue.withOpacity(0.4),
+                              blurRadius: responsiveWidth(0.04),
+                              spreadRadius: responsiveWidth(0.005),
+                              offset: const Offset(0, 4),
                             ),
+                          ],
+                        ),
+                        child: AnimatedRotation(
+                          duration: const Duration(milliseconds: 300),
+                          turns: _isFabOpen ? 0.125 : 0,
+                          child: Icon(
+                            _isFabOpen ? Icons.close_rounded : Icons.add_rounded,
+                            color: Colors.white,
+                            size: responsiveWidth(0.06),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                Expanded(
-                  child: _buildRequestsList(
-                    theme,
-                    isDark,
-                    screenWidth,
-                    screenHeight,
-                    responsiveWidth,
-                    responsiveHeight,
-                    responsiveFontSize,
-                  ),
-                ),
-              ],
-            ),
-
-            // FAB Menu Overlay
-            if (_isFabOpen)
-              GestureDetector(
-                onTap: _toggleFabMenu,
-                child: Container(
-                  color: Colors.black54,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-              ),
-
-            // FAB Options
-            Positioned(
-              bottom: responsiveHeight(0.15),
-              right: responsiveWidth(0.05),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: _optionsOpacity,
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 300),
-                  scale: _fabScale,
-                  child: Column(
-                    children: [
-                      ScaleTransition(
-                        scale: _bounceAnimation,
-                        child: _buildFabOptionItem(
-                          icon: Icons.flight_takeoff_outlined,
-                          label: "Travel Request",
-                          color: deepSky,
-                          onTap: _navigateToTravelRequest,
-                          theme: theme,
-                          screenWidth: screenWidth,
-                          responsiveWidth: responsiveWidth,
-                          responsiveHeight: responsiveHeight,
-                          responsiveFontSize: responsiveFontSize,
                         ),
                       ),
-                      SizedBox(height: responsiveHeight(0.02)),
-                      ScaleTransition(
-                        scale: _bounceAnimation,
-                        child: _buildFabOptionItem(
-                          icon: Icons.beach_access_outlined,
-                          label: "Create Leave",
-                          color: skyBlue,
-                          onTap: _navigateToLeaveRequest,
-                          theme: theme,
-                          screenWidth: screenWidth,
-                          responsiveWidth: responsiveWidth,
-                          responsiveHeight: responsiveHeight,
-                          responsiveFontSize: responsiveFontSize,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Main FAB
-            Positioned(
-              bottom: responsiveHeight(0.03),
-              right: responsiveWidth(0.05),
-              child: GestureDetector(
-                onTap: _toggleFabMenu,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: responsiveWidth(0.14),
-                  height: responsiveWidth(0.14),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [skyBlue, deepSky],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: skyBlue.withOpacity(0.4),
-                        blurRadius: responsiveWidth(0.04),
-                        spreadRadius: responsiveWidth(0.005),
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: AnimatedRotation(
-                    duration: const Duration(milliseconds: 300),
-                    turns: _isFabOpen ? 0.125 : 0,
-                    child: Icon(
-                      _isFabOpen ? Icons.close_rounded : Icons.add_rounded,
-                      color: Colors.white,
-                      size: responsiveWidth(0.06),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -1272,7 +1296,6 @@ class _LeaveApprovalScreenState extends State<LeaveApprovalScreen>
                   ),
                 );
               } else if (type == "travel") {
-                // ✅ FIX: Convert Map<dynamic, dynamic> to Map<String, dynamic>
                 final Map<String, dynamic> convertedData =
                     Map<String, dynamic>.from(data);
                 Navigator.push(

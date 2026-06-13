@@ -1,5 +1,3 @@
- 
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
@@ -7,6 +5,7 @@ import 'package:management_app/services/attendance_request_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'attendance_request_details_screen.dart';
+import 'package:flutter/services.dart';
 
 class AttendanceRequestsListScreen extends StatefulWidget {
   const AttendanceRequestsListScreen({super.key});
@@ -572,107 +571,133 @@ class _AttendanceRequestsListScreenState extends State<AttendanceRequestsListScr
   @override
   Widget build(BuildContext context) {
     _isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    // Status bar color based on theme
+    final statusBarColor = _isDarkMode ? charcoal : skyBlue;
 
-    return Scaffold(
-      backgroundColor: _isDarkMode ? charcoal : offWhite,
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: _isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarBrightness: _isDarkMode ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: _isDarkMode ? charcoal : pureWhite,
+        systemNavigationBarIconBrightness: _isDarkMode ? Brightness.light : Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: _isDarkMode ? charcoal : offWhite,
+        body: Stack(
           children: [
-            
+            // Status bar background - changes with theme
             Container(
-              height: 60,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [skyBlue, deepSky],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: skyBlue.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                      splashRadius: 24,
-                    ),
-                    const Text(
-                      "Attendance History",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        _isRefreshing ? Icons.refresh : Icons.refresh,
-                        color: Colors.white,
-                      ),
-                      onPressed: _isRefreshing ? null : _refreshData,
-                      splashRadius: 24,
-                    ),
-                  ],
-                ),
-              ),
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: statusBarColor,
             ),
-            Expanded(
-              child: _isLoading
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+            SafeArea(
+              top: true,
+              bottom: true,
+              child: Column(
+                children: [
+                  // Header with gradient
+                  Container(
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: _isDarkMode 
+                            ? [charcoal, slate, const Color(0xFF1E1E2E)]
+                            : [skyBlue, deepSky],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: skyBlue.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              color: skyBlue,
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.white),
+                            onPressed: () => Navigator.pop(context),
+                            splashRadius: 24,
+                          ),
+                          const Text(
+                            "Attendance History",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          Text(
-                            "Loading your requests...",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          IconButton(
+                            icon: Icon(
+                              _isRefreshing ? Icons.refresh : Icons.refresh,
+                              color: Colors.white,
                             ),
+                            onPressed: _isRefreshing ? null : _refreshData,
+                            splashRadius: 24,
                           ),
                         ],
                       ),
-                    )
-                  : _errorMessage.isNotEmpty
-                      ? _buildErrorState()
-                      : _requests.isEmpty
-                          ? _buildEmptyState()
-                          : RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: skyBlue,
-                              backgroundColor: _isDarkMode ? slate : pureWhite,
-                              displacement: 40,
-                              child: CustomScrollView(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                slivers: [
-                                  SliverToBoxAdapter(child: _buildHeader()),
-                                  SliverList(
-                                    delegate: SliverChildBuilderDelegate(
-                                      (context, index) => _buildRequestItem(_requests[index], index),
-                                      childCount: _requests.length,
+                    ),
+                  ),
+                  Expanded(
+                    child: _isLoading
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(
+                                  width: 60,
+                                  height: 60,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    color: skyBlue,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  "Loading your requests...",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : _errorMessage.isNotEmpty
+                            ? _buildErrorState()
+                            : _requests.isEmpty
+                                ? _buildEmptyState()
+                                : RefreshIndicator(
+                                    onRefresh: _refreshData,
+                                    color: skyBlue,
+                                    backgroundColor: _isDarkMode ? slate : pureWhite,
+                                    displacement: 40,
+                                    child: CustomScrollView(
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      slivers: [
+                                        SliverToBoxAdapter(child: _buildHeader()),
+                                        SliverList(
+                                          delegate: SliverChildBuilderDelegate(
+                                            (context, index) => _buildRequestItem(_requests[index], index),
+                                            childCount: _requests.length,
+                                          ),
+                                        ),
+                                        const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                                      ],
                                     ),
                                   ),
-                                  const SliverToBoxAdapter(child: SizedBox(height: 30)),
-                                ],
-                              ),
-                            ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -338,20 +338,31 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
     final textColor      = isDarkMode ? Colors.white : Colors.black;
     final cardColor      = isDarkMode ? slate : pureWhite;
     final subtitleColor  = isDarkMode ? Colors.grey[400] : Colors.grey[600];
+    
+    // Status bar color based on theme
+    final statusBarColor = isDarkMode ? charcoal : skyBlue;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor:                    Colors.transparent,
-        statusBarIconBrightness:           isDarkMode ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor:          isDarkMode ? charcoal : pureWhite,
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
         systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
         body: Stack(
           children: [
+            // Status bar background
+            Container(
+              height: MediaQuery.of(context).padding.top,
+              width: double.infinity,
+              color: statusBarColor,
+            ),
             SafeArea(
-              bottom: false,
+              top: true,
+              bottom: true,
               child: Container(
                 color: backgroundColor,
                 child: SingleChildScrollView(
@@ -371,7 +382,13 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
                               child: Container(
                                 padding: EdgeInsets.symmetric(horizontal: width * 0.04, vertical: height * 0.02),
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(colors: [skyBlue, deepSky], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                                  gradient: LinearGradient(
+                                    colors: isDarkMode 
+                                        ? [charcoal, slate, const Color(0xFF1E1E2E)]
+                                        : [skyBlue, deepSky],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
                                   borderRadius: BorderRadius.only(
                                     bottomLeft:  Radius.circular(width * 0.08),
                                     bottomRight: Radius.circular(width * 0.08),
