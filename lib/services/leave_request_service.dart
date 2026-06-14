@@ -7,7 +7,7 @@ import 'auth_service.dart';
 class LeaveRequestService {
   static const String _baseUrl = "https://ppecon.erpnext.com";
   static const String _leaveApi =
-      "$_baseUrl/api/method/ppecon_erp.leave_application.leave_application.submit_leave_from_mobile";
+      "$_baseUrl/api/method/ppecon_erp.leave_application.leave.submit_leave_from_mobile";
 
   static const Map<String, String> leaveTypeMapping = {
     "CL": "Annual Leave",
@@ -29,10 +29,14 @@ class LeaveRequestService {
     "Self (Employee)",
   ];
 
+  // ── Fix: always resolve code → full name ────────────────────
   static String mapLeaveType(String? value) {
     if (value == null || value.isEmpty) return "";
+    // If it's a code (e.g. "CL"), map to full name
+    if (leaveTypeMapping.containsKey(value)) return leaveTypeMapping[value]!;
+    // If it's already a full name, return as-is
     if (leaveTypeMapping.containsValue(value)) return value;
-    return leaveTypeMapping[value] ?? value;
+    return value;
   }
 
   static String _formatDate(String date) {
@@ -80,6 +84,8 @@ class LeaveRequestService {
     required String inchargeReplacement,
     required String ticket,
     required String exitReentry,
+    String? attachmentFileName,
+    String? attachmentBase64,
   }) async {
     if (!await _hasInternet()) {
       return {
@@ -110,16 +116,24 @@ class LeaveRequestService {
     if (inchargeReplacement.trim().isEmpty)
       return {"success": false, "message": "Incharge replacement is required."};
 
-    final body = {
-      "employee": employeeCode.trim(),
-      "leave_type": leaveType.trim(),
-      "from_date": _formatDate(fromDate.trim()),
-      "to_date": _formatDate(toDate.trim()),
-      "description": reason.trim(),
-      "incharge_replacement": inchargeReplacement.trim(),
-      "ticket": ticket,
-      "exit_reentry": exitReentry,
+    final Map<String, dynamic> body = {
+      "employee":              employeeCode.trim(),
+      "leave_type":            leaveType.trim(),
+      "from_date":             _formatDate(fromDate.trim()),
+      "to_date":               _formatDate(toDate.trim()),
+      "description":           reason.trim(),
+      "incharge_replacement":  inchargeReplacement.trim(),
+      "ticket":                ticket,
+      "exit_reentry":          exitReentry,
     };
+
+    // ── Attach file if provided ──────────────────────────────
+    if (attachmentFileName != null && attachmentBase64 != null) {
+      body["attachment"] = {
+        "file_name": attachmentFileName,
+        "file_data": attachmentBase64,
+      };
+    }
 
     final csrfToken = await _getCsrfToken();
 
@@ -133,9 +147,9 @@ class LeaveRequestService {
           .post(
             Uri.parse(_leaveApi),
             headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-              "Cookie": AuthService.cookies.join("; "),
+              "Content-Type":        "application/json",
+              "Accept":              "application/json",
+              "Cookie":              AuthService.cookies.join("; "),
               "X-Frappe-CSRF-Token": csrfToken,
             },
             body: jsonEncode(body),
@@ -157,30 +171,25 @@ class LeaveRequestService {
         final message = decoded["message"];
         if (message is Map) {
           final workflowState = message["workflow_state"]?.toString() ?? "";
-          final docId = message["name"]?.toString() ?? "";
-          final appMessage =
-              message["message"]?.toString() ?? "Leave applied successfully!";
+          final docId         = message["name"]?.toString() ?? "";
+          final appMessage    = message["message"]?.toString() ?? "Leave applied successfully!";
           if (workflowState == "Draft") {
             return {
-              "success": false,
-              "message": "Leave saved as Draft. Please contact administrator.",
+              "success":     false,
+              "message":     "Leave saved as Draft. Please contact administrator.",
               "document_id": docId,
             };
           }
           return {
-            "success": true,
-            "message": workflowState.isNotEmpty
-                ? "$appMessage\nStatus: $workflowState"
-                : appMessage,
-            "document_id": docId,
+            "success":        true,
+            "message":        workflowState.isNotEmpty ? "$appMessage\nStatus: $workflowState" : appMessage,
+            "document_id":    docId,
             "workflow_state": workflowState,
           };
         }
         return {
           "success": true,
-          "message":
-              message?.toString() ??
-              "Leave application submitted successfully!",
+          "message": message?.toString() ?? "Leave application submitted successfully!",
         };
       }
 
@@ -221,10 +230,10 @@ class LeaveRequestService {
     try {
       final raw = decoded["_server_messages"];
       if (raw != null) {
-        final list = jsonDecode(raw.toString()) as List;
+        final list  = jsonDecode(raw.toString()) as List;
         if (list.isNotEmpty) {
           final inner = jsonDecode(list.first.toString());
-          final msg = (inner["message"] ?? inner["title"] ?? "").toString();
+          final msg   = (inner["message"] ?? inner["title"] ?? "").toString();
           if (msg.isNotEmpty) return _friendlyMessage(msg);
         }
       }
@@ -232,8 +241,7 @@ class LeaveRequestService {
     final exception = decoded["exception"]?.toString() ?? "";
     if (exception.isNotEmpty) return _friendlyMessage(exception);
     final message = decoded["message"];
-    if (message is String && message.isNotEmpty)
-      return _friendlyMessage(message);
+    if (message is String && message.isNotEmpty) return _friendlyMessage(message);
     if (statusCode == 400) return "Bad request. Please check your input.";
     if (statusCode == 500) return "Server error. Please try again later.";
     return "Failed to submit leave. Please try again.";

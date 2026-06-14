@@ -294,12 +294,16 @@ class _ProfileScreenState extends State<Profilescreen>
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
+                // ── FIXED: SliverAppBar — title ab scroll hone par chip nahi karega ──
                 SliverAppBar(
-                  expandedHeight: height * 0.15,
-                  floating: true,
                   pinned: true,
+                  floating: false,
+                  snap: false,
+                  expandedHeight: 0,         // expand nahi hoga
+                  toolbarHeight: 56,
                   backgroundColor: Colors.transparent,
                   elevation: 0,
+                  automaticallyImplyLeading: false,
                   flexibleSpace: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -320,48 +324,35 @@ class _ProfileScreenState extends State<Profilescreen>
                         ),
                       ],
                     ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: -height * 0.05,
-                          right: -width * 0.1,
-                          child: Container(
-                            width: width * 0.5,
-                            height: width * 0.5,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.2),
-                                  Colors.white.withOpacity(0.05),
-                                ],
+                    child: SafeArea(
+                      bottom: false,
+                      child: Row(
+                        children: [
+                          // Back button
+                          IconButton(
+                            icon: Container(
+                              padding: EdgeInsets.all(width * 0.02),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.arrow_back_rounded,
+                                color: Colors.white,
+                                size: width * 0.05,
                               ),
                             ),
+                            onPressed: () => Navigator.pop(context),
                           ),
-                        ),
-                        Positioned(
-                          bottom: -height * 0.03,
-                          left: -width * 0.1,
-                          child: Container(
-                            width: width * 0.4,
-                            height: width * 0.4,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.15),
-                                  Colors.white.withOpacity(0.02),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        FlexibleSpaceBar(
-                          centerTitle: true,
-                          title: Padding(
-                            padding: EdgeInsets.only(top: height * 0.02),
+                          // Title — always centered, never moves on scroll
+                          Expanded(
                             child: Text(
                               "My Profile",
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -376,53 +367,33 @@ class _ProfileScreenState extends State<Profilescreen>
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  leading: IconButton(
-                    icon: Container(
-                      padding: EdgeInsets.all(width * 0.02),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_rounded,
-                        color: Colors.white,
-                        size: width * 0.05,
-                      ),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  actions: [
-                    Container(
-                      margin: EdgeInsets.only(right: width * 0.02),
-                      child: IconButton(
-                        icon: Container(
-                          padding: EdgeInsets.all(width * 0.02),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1,
+                          // Refresh button
+                          Container(
+                            margin: EdgeInsets.only(right: width * 0.02),
+                            child: IconButton(
+                              icon: Container(
+                                padding: EdgeInsets.all(width * 0.02),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.refresh_rounded,
+                                  color: Colors.white,
+                                  size: width * 0.05,
+                                ),
+                              ),
+                              onPressed: _refreshProfile,
                             ),
                           ),
-                          child: Icon(
-                            Icons.refresh_rounded,
-                            color: Colors.white,
-                            size: width * 0.05,
-                          ),
-                        ),
-                        onPressed: _refreshProfile,
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
                 SliverPadding(
                   padding: EdgeInsets.all(width * 0.04),
@@ -869,7 +840,7 @@ class _ProfileScreenState extends State<Profilescreen>
           _buildInfoCard(
             label: 'Emergency Contact',
             value: _getEmergencyContactPerson() != 'N/A'
-                ? '$_getEmergencyContactPerson() - $_getEmergencyContact()'
+                ? '${_getEmergencyContactPerson()} - ${_getEmergencyContact()}'
                 : _getEmergencyContact(),
             icon: Icons.emergency_rounded,
             color: Colors.amber,

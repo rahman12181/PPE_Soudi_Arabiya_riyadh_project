@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:management_app/services/leave_request_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 
 class LeaveRequest extends StatefulWidget {
   const LeaveRequest({super.key});
@@ -40,9 +41,12 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
   final TextEditingController inchargeCtrl       = TextEditingController();
 
   String? selectedLeaveType;
-  // ── New fields ──────────────────────────────────────────────
   String selectedTicket      = "Not Required";
   String selectedExitReentry = "Not Required";
+
+  // ── Attachment fields ────────────────────────────────────────
+  String? _attachedFileName;
+  String? _attachedFileBase64;
 
   static const Color skyBlue   = Color(0xFF87CEEB);
   static const Color lightSky  = Color(0xFFE0F2FE);
@@ -186,6 +190,39 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
       selectedLeaveType   = null;
       selectedTicket      = "Not Required";
       selectedExitReentry = "Not Required";
+      _attachedFileName   = null;
+      _attachedFileBase64 = null;
+    });
+  }
+
+  // ── File picker for attachment ───────────────────────────────
+  Future<void> _pickAttachment() async {
+    HapticFeedback.selectionClick();
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+        withData: true,
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        if (file.bytes != null) {
+          setState(() {
+            _attachedFileName   = file.name;
+            _attachedFileBase64 = base64Encode(file.bytes!);
+          });
+        }
+      }
+    } catch (e) {
+      _showErrorPopup("Failed to pick file: ${e.toString()}");
+    }
+  }
+
+  void _removeAttachment() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _attachedFileName   = null;
+      _attachedFileBase64 = null;
     });
   }
 
@@ -214,15 +251,20 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
     setState(() => _isLoading = true);
 
     try {
+      // ── Fix: map leave type code → full name before sending ──
+      final mappedLeaveType = LeaveRequestService.mapLeaveType(selectedLeaveType);
+
       final result = await LeaveRequestService.submitLeave(
         employeeCode:        empCodeCtrl.text.trim(),
-        leaveType:           LeaveRequestService.mapLeaveType(selectedLeaveType),
+        leaveType:           mappedLeaveType,
         fromDate:            fromDateCtrl.text,
         toDate:              toDateCtrl.text,
         reason:              reasonCtrl.text.trim(),
         inchargeReplacement: inchargeCtrl.text.trim(),
         ticket:              selectedTicket,
         exitReentry:         selectedExitReentry,
+        attachmentFileName:  _attachedFileName,
+        attachmentBase64:    _attachedFileBase64,
       );
 
       setState(() => _isLoading = false);
@@ -314,6 +356,91 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
     );
   }
 
+  // ── Attachment section widget ────────────────────────────────
+  Widget _buildAttachmentSection({required bool isDarkMode, required double width, required double height, required Color textColor}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Attachment", style: TextStyle(fontSize: width * 0.04, fontWeight: FontWeight.w600, color: textColor)),
+        SizedBox(height: height * 0.01),
+        if (_attachedFileName == null)
+          GestureDetector(
+            onTap: _isLoading ? null : _pickAttachment,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: width * 0.04, vertical: height * 0.018),
+              decoration: BoxDecoration(
+                color:        isDarkMode ? slate : offWhite,
+                borderRadius: BorderRadius.circular(width * 0.03),
+                border: Border.all(
+                  color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                  width: 1.5,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.attach_file_rounded, size: width * 0.05, color: skyBlue),
+                  SizedBox(width: width * 0.025),
+                  Text(
+                    "Attach Doc",
+                    style: TextStyle(
+                      fontSize: width * 0.038,
+                      fontWeight: FontWeight.w600,
+                      color: skyBlue,
+                    ),
+                  ),
+                  SizedBox(width: width * 0.02),
+                  Text(
+                    "(PDF, JPG, PNG, DOC)",
+                    style: TextStyle(
+                      fontSize: width * 0.03,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: width * 0.04, vertical: height * 0.015),
+            decoration: BoxDecoration(
+              color:        skyBlue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(width * 0.03),
+              border: Border.all(color: skyBlue.withOpacity(0.4), width: 1.5),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.insert_drive_file_rounded, size: width * 0.05, color: skyBlue),
+                SizedBox(width: width * 0.03),
+                Expanded(
+                  child: Text(
+                    _attachedFileName!,
+                    style: TextStyle(fontSize: width * 0.036, fontWeight: FontWeight.w500, color: textColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _isLoading ? null : _removeAttachment,
+                  child: Container(
+                    padding: EdgeInsets.all(width * 0.01),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.close_rounded, size: width * 0.045, color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     _mainController.dispose();
@@ -330,25 +457,23 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery     = MediaQuery.of(context);
-    final isDarkMode     = mediaQuery.platformBrightness == Brightness.dark;
-    final width          = mediaQuery.size.width;
-    final height         = mediaQuery.size.height;
+    final mediaQuery      = MediaQuery.of(context);
+    final isDarkMode      = mediaQuery.platformBrightness == Brightness.dark;
+    final width           = mediaQuery.size.width;
+    final height          = mediaQuery.size.height;
     final backgroundColor = isDarkMode ? charcoal : offWhite;
-    final textColor      = isDarkMode ? Colors.white : Colors.black;
-    final cardColor      = isDarkMode ? slate : pureWhite;
-    final subtitleColor  = isDarkMode ? Colors.grey[400] : Colors.grey[600];
-    
-    // Status bar color based on theme
-    final statusBarColor = isDarkMode ? charcoal : skyBlue;
+    final textColor       = isDarkMode ? Colors.white : Colors.black;
+    final cardColor       = isDarkMode ? slate : pureWhite;
+    final subtitleColor   = isDarkMode ? Colors.grey[400] : Colors.grey[600];
+    final statusBarColor  = isDarkMode ? charcoal : skyBlue;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
-        systemNavigationBarColor: isDarkMode ? charcoal : pureWhite,
-        systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarColor:                     Colors.transparent,
+        statusBarIconBrightness:            isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarBrightness:                isDarkMode ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor:           isDarkMode ? charcoal : pureWhite,
+        systemNavigationBarIconBrightness:  isDarkMode ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: backgroundColor,
@@ -372,7 +497,7 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
                     width: width,
                     child: Column(
                       children: [
-                        // ── Header ──────────────────────────────────────────
+                        // ── Header (employee name card REMOVED per client request) ──
                         FadeTransition(
                           opacity: _fadeAnimation,
                           child: SlideTransition(
@@ -383,7 +508,7 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
                                 padding: EdgeInsets.symmetric(horizontal: width * 0.04, vertical: height * 0.02),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: isDarkMode 
+                                    colors: isDarkMode
                                         ? [charcoal, slate, const Color(0xFF1E1E2E)]
                                         : [skyBlue, deepSky],
                                     begin: Alignment.topLeft,
@@ -395,50 +520,18 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
                                   ),
                                   boxShadow: [BoxShadow(color: skyBlue.withOpacity(0.3), blurRadius: 20, spreadRadius: 1, offset: const Offset(0, 4))],
                                 ),
-                                child: Column(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        IconButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          icon: Icon(Icons.arrow_back_rounded, color: Colors.white, size: width * 0.06),
-                                        ),
-                                        Text("Leave Request", style: TextStyle(fontSize: width * 0.05, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.5)),
-                                        SizedBox(width: width * 0.06),
-                                      ],
+                                    IconButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      icon: Icon(Icons.arrow_back_rounded, color: Colors.white, size: width * 0.06),
                                     ),
-                                    SizedBox(height: height * 0.01),
-                                    if (empNameCtrl.text.isNotEmpty)
-                                      Container(
-                                        padding: EdgeInsets.symmetric(horizontal: width * 0.04, vertical: height * 0.015),
-                                        decoration: BoxDecoration(
-                                          color:        Colors.white.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(width * 0.03),
-                                          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.person_outline, color: Colors.white, size: width * 0.06),
-                                            SizedBox(width: width * 0.03),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(empNameCtrl.text, style: TextStyle(fontSize: width * 0.045, fontWeight: FontWeight.bold, color: Colors.white)),
-                                                  SizedBox(height: height * 0.005),
-                                                  Text('ID: ${empCodeCtrl.text}', style: TextStyle(fontSize: width * 0.035, color: Colors.white.withOpacity(0.8))),
-                                                ],
-                                              ),
-                                            ),
-                                            Container(
-                                              padding: EdgeInsets.symmetric(horizontal: width * 0.03, vertical: height * 0.005),
-                                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(width * 0.02)),
-                                              child: Text('Employee', style: TextStyle(fontSize: width * 0.03, color: Colors.white)),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                    Text(
+                                      "Leave Request",
+                                      style: TextStyle(fontSize: width * 0.05, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.5),
+                                    ),
+                                    SizedBox(width: width * 0.06),
                                   ],
                                 ),
                               ),
@@ -466,31 +559,54 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
 
-                                        // Leave Type chips
+                                        // ── Leave Type chips — 2 columns ──────────────────
                                         Text("Select Leave Type", style: TextStyle(fontSize: width * 0.045, fontWeight: FontWeight.w700, color: textColor)),
                                         SizedBox(height: height * 0.015),
-                                        Wrap(
-                                          spacing:    width * 0.02,
-                                          runSpacing: height * 0.01,
+                                        GridView.count(
+                                          crossAxisCount:   2,
+                                          shrinkWrap:       true,
+                                          physics:          const NeverScrollableScrollPhysics(),
+                                          crossAxisSpacing: width * 0.02,
+                                          mainAxisSpacing:  height * 0.012,
+                                          childAspectRatio: 3.0,
                                           children: leaveTypes.map((lt) {
                                             final isSelected = selectedLeaveType == lt["code"];
                                             final typeColor  = lt["color"] as Color;
-                                            return ChoiceChip(
-                                              label: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(lt["icon"] as IconData, size: width * 0.045, color: isSelected ? Colors.white : typeColor),
-                                                  SizedBox(width: width * 0.02),
-                                                  Text(lt["name"]!, style: TextStyle(fontSize: width * 0.035, fontWeight: FontWeight.w600, color: isSelected ? Colors.white : null)),
-                                                ],
+                                            return GestureDetector(
+                                              onTap: _isLoading ? null : () {
+                                                HapticFeedback.selectionClick();
+                                                setState(() => selectedLeaveType = lt["code"]);
+                                              },
+                                              child: AnimatedContainer(
+                                                duration: const Duration(milliseconds: 200),
+                                                padding: EdgeInsets.symmetric(horizontal: width * 0.03, vertical: height * 0.01),
+                                                decoration: BoxDecoration(
+                                                  color:        isSelected ? typeColor : (isDarkMode ? slate : Colors.grey[200]),
+                                                  borderRadius: BorderRadius.circular(width * 0.025),
+                                                  border: Border.all(
+                                                    color: isSelected ? typeColor : (isDarkMode ? Colors.grey[700]! : Colors.grey[300]!),
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(lt["icon"] as IconData, size: width * 0.04, color: isSelected ? Colors.white : typeColor),
+                                                    SizedBox(width: width * 0.015),
+                                                    Flexible(
+                                                      child: Text(
+                                                        lt["name"]!,
+                                                        style: TextStyle(
+                                                          fontSize:   width * 0.033,
+                                                          fontWeight: FontWeight.w600,
+                                                          color:      isSelected ? Colors.white : textColor,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                              selected:         isSelected,
-                                              onSelected:       (s) { HapticFeedback.selectionClick(); setState(() => selectedLeaveType = lt["code"]); },
-                                              backgroundColor:  isDarkMode ? slate : Colors.grey[200],
-                                              selectedColor:    typeColor,
-                                              side: BorderSide(color: isSelected ? typeColor : isDarkMode ? Colors.grey[700]! : Colors.grey[300]!, width: 1.5),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(width * 0.025)),
-                                              padding: EdgeInsets.symmetric(horizontal: width * 0.04, vertical: height * 0.012),
                                             );
                                           }).toList(),
                                         ),
@@ -546,28 +662,28 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
 
                                         SizedBox(height: height * 0.025),
 
-                                        // Ticket dropdown ── NEW
+                                        // Ticket dropdown
                                         _buildDropdown(
-                                          label:     "Ticket",
-                                          icon:      Icons.airplane_ticket_outlined,
-                                          value:     selectedTicket,
-                                          options:   LeaveRequestService.ticketOptions,
-                                          onChanged: (v) => setState(() => selectedTicket = v),
+                                          label:      "Ticket",
+                                          icon:       Icons.airplane_ticket_outlined,
+                                          value:      selectedTicket,
+                                          options:    LeaveRequestService.ticketOptions,
+                                          onChanged:  (v) => setState(() => selectedTicket = v),
                                           isDarkMode: isDarkMode,
-                                          width:     width,
+                                          width:      width,
                                         ),
 
                                         SizedBox(height: height * 0.025),
 
-                                        // Exit Re-entry dropdown ── NEW
+                                        // Exit Re-entry dropdown
                                         _buildDropdown(
-                                          label:     "Exit Re-entry",
-                                          icon:      Icons.swap_horiz_rounded,
-                                          value:     selectedExitReentry,
-                                          options:   LeaveRequestService.exitReentryOptions,
-                                          onChanged: (v) => setState(() => selectedExitReentry = v),
+                                          label:      "Exit Re-entry",
+                                          icon:       Icons.swap_horiz_rounded,
+                                          value:      selectedExitReentry,
+                                          options:    LeaveRequestService.exitReentryOptions,
+                                          onChanged:  (v) => setState(() => selectedExitReentry = v),
                                           isDarkMode: isDarkMode,
-                                          width:     width,
+                                          width:      width,
                                         ),
 
                                         SizedBox(height: height * 0.025),
@@ -580,6 +696,16 @@ class _LeaveRequestState extends State<LeaveRequest> with TickerProviderStateMix
                                           style: TextStyle(fontSize: width * 0.04, color: textColor, fontWeight: FontWeight.w500),
                                           decoration: _inputDecoration("Enter person name", icon: Icons.person_add),
                                           validator: (v) => v!.isEmpty ? "Please enter incharge replacement" : null,
+                                        ),
+
+                                        SizedBox(height: height * 0.025),
+
+                                        // ── Attachment section ────────────────────────────
+                                        _buildAttachmentSection(
+                                          isDarkMode: isDarkMode,
+                                          width:      width,
+                                          height:     height,
+                                          textColor:  textColor,
                                         ),
 
                                         SizedBox(height: height * 0.04),
